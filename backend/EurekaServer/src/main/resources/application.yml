@@ -1,0 +1,14 @@
+spring:
+  application:
+    name: ${SERVER_NAME}}
+
+server:
+  port: ${SERVER_PORT}
+
+eureka:
+  instance:
+    hostname: ${HOST_NAME}
+
+  client:
+    fetch-registry: false # When working with multiple Eureka Server, then set both to true
+    register-with-eureka: false # Server doesn't register itself

@@ -1,0 +1,44 @@
+spring:
+  application:
+    name: ${SERVER_NAME}
+
+  cloud:
+    gateway:
+      server:
+        webflux:
+          discovery:
+            locator:
+              enabled: true
+
+          routes:
+            - id: user-management
+              uri: lb://user-management
+              predicates:
+                - Path=/user/**
+
+            - id: auth-route
+              uri: lb://authentication
+              predicates:
+                - Path=/auth/**
+
+auth:
+  service:
+    url: ${AUTH_SERVER_URL}
+
+  path-prefix: /auth
+
+server:
+  port: ${SERVER_PORT}
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka
+    register-with-eureka: true
+    fetch-registry: true
+
+
+logging:
+  level:
+    org.springframework.security: DEBUG
+    org.springframework.cloud.gateway: DEBUG
