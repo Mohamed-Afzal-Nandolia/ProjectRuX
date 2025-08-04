@@ -274,6 +274,21 @@ public class UserServiceImpl implements UserService {
     }
 
     /**
+     * Retrieves a list of all predefined skills available in the {@link Skill} enum.
+     * <p>
+     * This method converts each enum constant to its string representation (e.g., "JAVA", "REACT")
+     * and returns them as a list.
+     *
+     * @return A list of all skill names defined in the {@link Skill} enum.
+     */
+    @Override
+    public List<String> getAllSkills() {
+        return Arrays.stream(Skill.values())
+                .map(Enum::name)
+                .collect(Collectors.toList());
+    }
+
+    /**
      * Fetches all users from the system.
      *
      * @return A list of {@link UserDto} objects representing all users.

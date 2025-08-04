@@ -23,6 +23,8 @@ public interface UserService {
 
     public List<String> getUserSkills(String id);
 
+    public List<String> getAllSkills();
+
     public List<UserDto> getAllUsers();
 
 }

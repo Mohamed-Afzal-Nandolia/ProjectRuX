@@ -79,6 +79,12 @@ public class UserContoller {
         return ResponseEntity.ok(allUserSkills);
     }
 
+    @GetMapping("/get-all-skills")
+    public ResponseEntity<List<String>> getAllSkills(){
+        List<String> allUserSkills = userService.getAllSkills();
+        return ResponseEntity.ok(allUserSkills);
+    }
+
     @PutMapping("/add-skills/{id}")
     public ResponseEntity<Map<String, List<String>>> addUserSkills(@PathVariable("id") String id, @RequestBody List<String> skills){
         Map<String, List<String>> updatedUserSkills = userService.addUserSkills(id, skills);
