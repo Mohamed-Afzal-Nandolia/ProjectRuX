@@ -80,8 +80,13 @@ public class UserContoller {
     }
 
     @PutMapping("/add-skills/{id}")
-    public ResponseEntity<List<String>> addUserSkills(@PathVariable("id") String id, @RequestBody List<String> skills){
-        List<String> updatedUserSkills = userService.addUserSkills(id, skills);
+    public ResponseEntity<Map<String, List<String>>> addUserSkills(@PathVariable("id") String id, @RequestBody List<String> skills){
+        Map<String, List<String>> updatedUserSkills = userService.addUserSkills(id, skills);
+
+        if (updatedUserSkills.containsKey("Invalid Skills")) {
+            return ResponseEntity.badRequest().body(updatedUserSkills);
+        }
+
         return ResponseEntity.ok(updatedUserSkills);
     }
 

@@ -1,6 +1,7 @@
 package ProjectRuX.UserManagement.service.impl;
 
 import ProjectRuX.UserManagement.entity.User;
+import ProjectRuX.UserManagement.enums.Skill;
 import ProjectRuX.UserManagement.exception.ResourceAlreadyExists;
 import ProjectRuX.UserManagement.exception.ResourceNotFoundException;
 import ProjectRuX.UserManagement.model.UserDto;
@@ -12,9 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -32,6 +31,23 @@ public class UserServiceImpl implements UserService {
     @Autowired
     private JwtUtil jwtUtil;
 
+    /**
+     * Registers a new user by saving their details into the database.
+     * <p>
+     * This method performs the following steps:
+     * <ul>
+     *     <li>Maps the incoming {@link UserDto} to a {@link User} entity.</li>
+     *     <li>Copies the email, username, and password from the DTO to the entity.</li>
+     *     <li>Saves the user entity to the database.</li>
+     *     <li>Maps and returns the saved entity back as a {@link UserDto}.</li>
+     * </ul>
+     *
+     * <strong>Note:</strong> This method currently stores the password as plain text.
+     * It is recommended to encode the password using a password encoder before saving.
+     *
+     * @param userDto A {@link UserDto} object containing the user's registration information.
+     * @return A {@link UserDto} object containing the saved user's information.
+     */
     public UserDto signupTest(UserDto userDto){
         User user = modelMapper.map(userDto, User.class);
         user.setEmail(userDto.getEmail());
@@ -93,6 +109,25 @@ public class UserServiceImpl implements UserService {
         return modelMapper.map(savedUser, UserDto.class);
     }
 
+    /**
+     * Authenticates a user based on their email and password.
+     * <p>
+     * This method performs the following steps:
+     * <ul>
+     *     <li>Retrieves the user by email from the database.</li>
+     *     <li>Verifies the provided password against the stored (hashed) password.</li>
+     *     <li>Generates and returns a JWT token if authentication is successful.</li>
+     * </ul>
+     *
+     * @param userDto A {@link UserDto} object containing the user's email and plain-text password.
+     * @return A JWT token string representing the authenticated session.
+     *
+     * @throws ResourceNotFoundException if:
+     * <ul>
+     *     <li>No user is found with the given email.</li>
+     *     <li>The provided password does not match the stored password.</li>
+     * </ul>
+     */
     public String login(UserDto userDto){
         User user = userRepository.findByEmail(userDto.getEmail())
                 .orElseThrow(() -> new ResourceNotFoundException("Email id: " + userDto.getEmail() + " doesn't exist"));
@@ -175,31 +210,52 @@ public class UserServiceImpl implements UserService {
     }
 
     /**
-     * Adds a list of skills to the specified user by their ID.
+     * Adds a list of skills to a user's profile based on their unique ID.
      * <p>
-     * This method ensures no duplicate skills are added. If the user
-     * does not have any skills yet, a new list is initialized.
+     * This method performs the following:
+     * <ul>
+     *     <li>Validates each skill by checking against predefined {@link Skill} enum values.</li>
+     *     <li>Converts skill names to uppercase before validation to ensure case-insensitive matching.</li>
+     *     <li>Adds only valid and non-duplicate skills to the user's existing skill list.</li>
+     *     <li>Collects and returns any invalid skill entries without modifying the user's data if invalid entries are found.</li>
+     * </ul>
      *
      * @param id     The unique identifier of the user.
-     * @param skills A list of new skills to add to the user's profile.
-     * @return The updated list of the user's skills after addition.
-     * @throws ResourceNotFoundException if the user with the given ID does not exist.
+     * @param skills A list of skill names (case-insensitive) to be added to the user's profile.
+     * @return A map containing either:
+     *         <ul>
+     *             <li>{@code "Updated Skills"} with the updated list of user's skills if all inputs are valid, or</li>
+     *             <li>{@code "Invalid Skills"} with a list of invalid skill entries if any are found.</li>
+     *         </ul>
+     *
+     * @throws ResourceNotFoundException if a user with the provided ID does not exist.
      */
     @Override
-    public List<String> addUserSkills(String id, List<String> skills){
+    public Map<String, List<String>> addUserSkills(String id, List<String> skills){
         User user = findUser(id);
-        List<String> existingSkills = user.getSkills() == null ? new ArrayList<>() : user.getSkills();
 
-        for(String skill : skills){
-            if(!existingSkills.contains(skill)){
-                existingSkills.add(skill);
+        List<String> existingSkills = user.getSkills() == null ? new ArrayList<>() : user.getSkills();
+        Set<Skill> validSkills = new HashSet<>();
+        List<String> invalidSkills = new ArrayList<>();
+
+        for (String skill : skills) {
+            try {
+                Skill s = Skill.valueOf(skill.toUpperCase());
+                validSkills.add(s);
+                if(!existingSkills.contains(skill)){
+                    existingSkills.add(skill);
+                }
+            } catch (Exception e) {
+                invalidSkills.add(skill);
             }
         }
 
+        if (!invalidSkills.isEmpty()){
+            return Map.of("Invalid Skills", invalidSkills);
+        }
         user.setSkills(existingSkills);
         userRepository.save(user);
-
-        return existingSkills;
+        return Map.of("Updated Skills", existingSkills);
     }
 
     /**
