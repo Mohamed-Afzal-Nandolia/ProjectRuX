@@ -21,6 +21,11 @@ spring:
               predicates:
                 - Path=/auth/**
 
+            - id: post-service
+              uri: lb://post-service
+              predicates:
+                - Path=/post/**
+
 auth:
   service:
     url: ${AUTH_SERVER_URL}

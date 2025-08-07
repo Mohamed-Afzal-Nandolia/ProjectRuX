@@ -23,6 +23,9 @@ public class GatewayRoutesConfig {
             // keep adding filters
             .route("authentication", r -> r.path("/auth/**")
                     .uri("lb://authentication"))
+            .route("post-service", r -> r.path("/post/**")
+                    .filters(f -> f.filter(jwtAuthFilter))
+                    .uri("lb://post-service"))
             .build();
 
     }

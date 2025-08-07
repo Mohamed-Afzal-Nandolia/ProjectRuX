@@ -1,0 +1,33 @@
+spring:
+  application:
+    name: ${SERVER_NAME}
+
+  data:
+    mongodb:
+      uri: ${URI}
+      database: ${DATABASE_NAME}
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka
+    register-with-eureka: true
+    fetch-registry: true
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: always
+
+
+server:
+  port: ${SERVER_PORT}
+
+logging:
+  level:
+    org.springframework.security: DEBUG
+    org.springframework.cloud.gateway: DEBUG
