@@ -7,6 +7,13 @@ spring:
       uri: ${URI}
       database: ${DATABASE_NAME}
 
+    redis:
+      host: ${REDIS_HOST}
+      port: ${REDIS_PORT}
+      username: ${REDIS_USERNAME}
+      password: ${REDIS_PASS}
+
+
 eureka:
   client:
     service-url:

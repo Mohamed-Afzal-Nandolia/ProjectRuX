@@ -11,6 +11,7 @@ import ProjectRuX.PostService.service.PostService;
 import ProjectRuX.PostService.enums.ApplicantStatus;
 import ProjectRuX.PostService.enums.PostStatus;
 import ProjectRuX.PostService.enums.Skill;
+import ProjectRuX.PostService.service.RedisService;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -28,6 +29,9 @@ public class PostServiceImpl implements PostService {
 
     @Autowired
     private PostRepository postRepository;
+
+    @Autowired
+    private RedisService redisService;
 
     @Override
     public PostDto createPost(PostDto postDto) {
@@ -55,9 +59,17 @@ public class PostServiceImpl implements PostService {
     }
 
     @Override
-    public PostDto getPostById(String id) {
+    public PostDto getPostById(String id) { // can use redis here
+        PostDto cachedPostDto = redisService.get(id, PostDto.class, 60L);
+        if(cachedPostDto != null){
+            return cachedPostDto;
+        }
+
         Post post = postRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Post Does not exist with id : " + id));
-        return mapper.map(post, PostDto.class);
+        PostDto postDto = mapper.map(post, PostDto.class);
+        redisService.set(id, postDto, 60L);
+
+        return postDto;
     }
 
     @Override
