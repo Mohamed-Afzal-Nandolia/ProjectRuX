@@ -2,6 +2,7 @@ package ProjectRuX.PostService.service.impl;
 
 import ProjectRuX.PostService.model.PostDto;
 import ProjectRuX.PostService.service.RedisService;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import lombok.extern.slf4j.Slf4j;
@@ -28,7 +29,7 @@ public class RedisServiceImpl implements RedisService {
         try {
             redisTemplate.opsForValue().set(key, value, ttlSeconds, TimeUnit.SECONDS);
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error("Error setting cache for key {}", key, e);
         }
     }
 
@@ -38,14 +39,30 @@ public class RedisServiceImpl implements RedisService {
             Object value = redisTemplate.opsForValue().get(key);
             if (value == null) return null;
 
-            // Refresh TTL
             if (ttlSeconds != null) {
                 redisTemplate.expire(key, ttlSeconds, TimeUnit.SECONDS);
             }
 
             return objectMapper.convertValue(value, type);
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error("Error getting cache for key {}", key, e);
+            return null;
+        }
+    }
+
+    @Override
+    public <T> T get(String key, TypeReference<T> typeRef, Long ttlSeconds) {
+        try {
+            Object value = redisTemplate.opsForValue().get(key);
+            if (value == null) return null;
+
+            if (ttlSeconds != null) {
+                redisTemplate.expire(key, ttlSeconds, TimeUnit.SECONDS);
+            }
+
+            return objectMapper.convertValue(value, typeRef);
+        } catch (Exception e) {
+            log.error("Error getting cache for key {}", key, e);
             return null;
         }
     }

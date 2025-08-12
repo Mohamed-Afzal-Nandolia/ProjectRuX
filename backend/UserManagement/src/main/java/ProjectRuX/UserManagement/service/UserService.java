@@ -11,7 +11,7 @@ public interface UserService {
 
     public UserDto signupTest(UserDto userDto);
 
-    public String login(UserDto userDto);
+//    public String login(UserDto userDto);
 
     public UserDto updateUser(UserDto userDto);
 

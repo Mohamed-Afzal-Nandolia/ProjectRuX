@@ -6,7 +6,7 @@ import ProjectRuX.UserManagement.exception.ResourceAlreadyExists;
 import ProjectRuX.UserManagement.exception.ResourceNotFoundException;
 import ProjectRuX.UserManagement.model.UserDto;
 import ProjectRuX.UserManagement.repository.UserRepository;
-import ProjectRuX.UserManagement.security.JwtUtil;
+//import ProjectRuX.UserManagement.security.JwtUtil;
 import ProjectRuX.UserManagement.service.UserService;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,8 +28,8 @@ public class UserServiceImpl implements UserService {
     @Autowired
     BCryptPasswordEncoder passwordEncoder;
 
-    @Autowired
-    private JwtUtil jwtUtil;
+//    @Autowired
+//    private JwtUtil jwtUtil;
 
     /**
      * Registers a new user by saving their details into the database.
@@ -128,16 +128,16 @@ public class UserServiceImpl implements UserService {
      *     <li>The provided password does not match the stored password.</li>
      * </ul>
      */
-    public String login(UserDto userDto){
-        User user = userRepository.findByEmail(userDto.getEmail())
-                .orElseThrow(() -> new ResourceNotFoundException("Email id: " + userDto.getEmail() + " doesn't exist"));
-
-        if(!passwordEncoder.matches(userDto.getPassword(), user.getPassword())){
-            throw new ResourceNotFoundException("Incorrect Password");
-        }
-
-        return jwtUtil.generateToken(userDto.getUsername());
-    }
+//    public String login(UserDto userDto){
+//        User user = userRepository.findByEmail(userDto.getEmail())
+//                .orElseThrow(() -> new ResourceNotFoundException("Email id: " + userDto.getEmail() + " doesn't exist"));
+//
+//        if(!passwordEncoder.matches(userDto.getPassword(), user.getPassword())){
+//            throw new ResourceNotFoundException("Incorrect Password");
+//        }
+//
+//        return jwtUtil.generateToken(userDto.getUsername());
+//    }
 
     /**
      * Updates an existing user's information.

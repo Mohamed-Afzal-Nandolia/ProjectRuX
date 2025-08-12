@@ -38,15 +38,15 @@ public class UserContoller {
         return ResponseEntity.ok(user);
     }
 
-    @PostMapping("/auth/login") //Endpoint is OPEN
-    public ResponseEntity<?> login(@RequestBody UserDto userDto) {
-        String token = userService.login(userDto);
-
-        if (!token.isEmpty()) {
-            return ResponseEntity.ok(Map.of("token", token));
-        }
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid credentials");
-    }
+//    @PostMapping("/auth/login") //Endpoint is OPEN
+//    public ResponseEntity<?> login(@RequestBody UserDto userDto) {
+//        String token = userService.login(userDto);
+//
+//        if (!token.isEmpty()) {
+//            return ResponseEntity.ok(Map.of("token", token));
+//        }
+//        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid credentials");
+//    }
 
     @PutMapping("/update-user")
     public ResponseEntity<UserDto> updateUser(@RequestBody UserDto userDto){

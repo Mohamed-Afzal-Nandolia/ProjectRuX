@@ -12,6 +12,8 @@ import ProjectRuX.PostService.enums.ApplicantStatus;
 import ProjectRuX.PostService.enums.PostStatus;
 import ProjectRuX.PostService.enums.Skill;
 import ProjectRuX.PostService.service.RedisService;
+import com.fasterxml.jackson.core.type.TypeReference;
+import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -21,6 +23,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 public class PostServiceImpl implements PostService {
 
@@ -59,13 +62,14 @@ public class PostServiceImpl implements PostService {
     }
 
     @Override
-    public PostDto getPostById(String id) { // can use redis here
+    public PostDto getPostById(String id) {
         PostDto cachedPostDto = redisService.get(id, PostDto.class, 60L);
         if(cachedPostDto != null){
             return cachedPostDto;
         }
 
-        Post post = postRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Post Does not exist with id : " + id));
+        Post post = postRepository.findById(id).
+                orElseThrow(() -> new ResourceNotFoundException("Post Does not exist with id : " + id));
         PostDto postDto = mapper.map(post, PostDto.class);
         redisService.set(id, postDto, 60L);
 
@@ -74,8 +78,18 @@ public class PostServiceImpl implements PostService {
 
     @Override
     public List<PostDto> getAllPosts() {
+        List<PostDto> cachedPosts = redisService.get("getAllPosts", new TypeReference<List<PostDto>>() {}, 60L);
+        if (cachedPosts != null) {
+            return cachedPosts;
+        }
+
         List<Post> allPosts = postRepository.findAll();
-        return allPosts.stream().map((post) -> mapper.map(post, PostDto.class)).collect(Collectors.toList());
+        List<PostDto> postDtos = allPosts.stream()
+                .map(post -> mapper.map(post, PostDto.class))
+                .collect(Collectors.toList());
+
+        redisService.set("getAllPosts", postDtos, 60L);
+        return postDtos;
     }
 
     @Override
