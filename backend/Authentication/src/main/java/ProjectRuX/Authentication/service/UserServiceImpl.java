@@ -64,7 +64,7 @@ public class UserServiceImpl implements UserService{
      */
     @Override
     public Map<String, String> signup(AuthUserDto authUserDto) {
-        System.out.println(internalSharedKey);
+
         if (userRepository.findByEmail(authUserDto.getEmail()).isPresent()){
             throw new ResourceAlreadyExists("Email: '" + authUserDto.getEmail() + "' Already Exists");
         }
