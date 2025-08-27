@@ -21,10 +21,10 @@ FROM eclipse-temurin:21-jdk
 WORKDIR /app
 
 # Copy the built JAR file from the build stage
-COPY --from=build /app/target/ProjectRux-0.0.1-SNAPSHOT.jar .
+COPY --from=build /app/target/projectrux-0.0.1-SNAPSHOT.jar .
 
 # Expose the Eureka server port
 EXPOSE 8761
 
 # Run the application
-ENTRYPOINT ["java", "-jar", "ProjectRux-0.0.1-SNAPSHOT.jar"]
+ENTRYPOINT ["java", "-jar", "projectrux-0.0.1-SNAPSHOT.jar"]
