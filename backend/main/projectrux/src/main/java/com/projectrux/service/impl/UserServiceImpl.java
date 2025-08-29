@@ -1,19 +1,25 @@
 package com.projectrux.service.impl;
 
 
+import com.projectrux.entity.Otp;
 import com.projectrux.entity.User;
 import com.projectrux.enums.Skill;
+import com.projectrux.enums.UserStatus;
 import com.projectrux.exception.ResourceAlreadyExists;
 import com.projectrux.exception.ResourceNotFoundException;
+import com.projectrux.model.OtoDto;
 import com.projectrux.model.UserDto;
+import com.projectrux.repository.OtpRepository;
 import com.projectrux.repository.UserRepository;
 import com.projectrux.security.JwtUtil;
+import com.projectrux.service.MailService;
 import com.projectrux.service.UserService;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -22,6 +28,12 @@ public class UserServiceImpl implements UserService {
 
     @Autowired
     UserRepository userRepository;
+
+    @Autowired
+    OtpRepository otpRepository;
+
+    @Autowired
+    MailService mailService;
 
     @Autowired
     ModelMapper modelMapper;
@@ -48,12 +60,68 @@ public class UserServiceImpl implements UserService {
         }
 
         String encodedPassword = passwordEncoder.encode(userDto.getPassword());
-
         User user = modelMapper.map(userDto, User.class);
         user.setPassword(encodedPassword);
-
+        user.setStatus(UserStatus.PENDING);
         User savedUser = userRepository.save(user);
-        return Map.of("token", jwtUtil.generateToken(Map.of("username", savedUser.getUsername())));
+
+        Otp otpEntity = new Otp();
+        otpEntity.setUserId(savedUser.getId());
+        otpEntity.setOtpCode(generateOtp());
+        otpEntity.setExpiryTime(LocalDateTime.now().plusMinutes(5));
+        otpRepository.save(otpEntity);
+
+        mailService.sendOtpMail(savedUser.getEmail(), "", otpEntity.getOtpCode());
+        return Map.of("success", "OTP has been sent to your Email");
+    }
+
+    private String generateOtp() {
+        int otp = (int)(Math.random() * 900000) + 100000; // 6-digit random
+        return String.valueOf(otp);
+    }
+
+    @Override
+    public Map<String, String> verifyOtp(String userId, OtoDto otp) {
+        User user = findUser(userId);
+
+        if (user.getStatus() != UserStatus.PENDING) {
+            return Map.of("error", "Otp verification is already done");
+        }
+
+        Otp otpEntity = otpRepository.findByUserId(userId);
+        if (otpEntity == null) {
+            return Map.of("error", "Otp not found or already used");
+        }
+
+        if (otpEntity.getExpiryTime().isBefore(LocalDateTime.now())) {
+            return Map.of("error", "Otp expired");
+        }
+
+        if (!otpEntity.getOtpCode().equals(otp.getOtpCode())) {
+            return Map.of("error", "Wrong Otp");
+        }
+
+        user.setStatus(UserStatus.ACTIVE);
+        userRepository.save(user);
+        otpRepository.delete(otpEntity);
+
+        return Map.of("token", jwtUtil.generateToken(Map.of("username", user.getUsername())));
+    }
+
+    @Override
+    public Map<String, String> resendOtp(String userId, OtoDto otp) {
+        User user = findUser(userId);
+
+        Otp otpEntity = otpRepository.findByUserId(userId);
+        if(otpEntity == null) {
+            return Map.of("error", "No OTP found");
+        }
+        otpEntity.setOtpCode(generateOtp());
+        otpEntity.setExpiryTime(LocalDateTime.now().plusMinutes(5));
+        otpRepository.save(otpEntity);
+
+        mailService.sendOtpMail(user.getEmail(), "", otpEntity.getOtpCode());
+        return Map.of("success", "New OTP has been sent to your Email");
     }
 
     public Map<String, String> login(UserDto userDto){

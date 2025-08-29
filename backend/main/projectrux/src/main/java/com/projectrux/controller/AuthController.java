@@ -1,5 +1,6 @@
 package com.projectrux.controller;
 
+import com.projectrux.model.OtoDto;
 import com.projectrux.model.UserDto;
 import com.projectrux.security.JwtUtil;
 import com.projectrux.service.UserService;
@@ -23,7 +24,19 @@ public class AuthController {
 
     @PostMapping("/signup")
     public ResponseEntity<Map<String, String>> signup(@RequestBody UserDto authUserDto){
-        Map<String, String> token = userService.signup(authUserDto);
+        Map<String, String> message = userService.signup(authUserDto);
+        return ResponseEntity.ok(message);
+    }
+
+    @PostMapping("/verify-otp/{userId}")
+    public ResponseEntity<Map<String, String>> verifyOtp(@PathVariable String userId, @RequestBody OtoDto otp){
+        Map<String, String> token = userService.verifyOtp(userId, otp);
+        return ResponseEntity.ok(token);
+    }
+
+    @PostMapping("/resend-otp/{userId}")
+    public ResponseEntity<Map<String, String>> resendOtp(@PathVariable String userId, @RequestBody OtoDto otp){
+        Map<String, String> token = userService.resendOtp(userId, otp);
         return ResponseEntity.ok(token);
     }
 

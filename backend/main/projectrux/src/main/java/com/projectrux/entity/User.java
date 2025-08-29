@@ -1,5 +1,6 @@
 package com.projectrux.entity;
 
+import com.projectrux.enums.UserStatus;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.data.annotation.Id;
@@ -27,5 +28,7 @@ public class User {
     private String bio;
 
     private LocalDateTime createdAt;
+
+    private UserStatus status;
 
 }

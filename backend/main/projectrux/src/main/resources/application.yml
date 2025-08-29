@@ -13,6 +13,16 @@ spring:
       username: ${REDIS_USERNAME}
       password: ${REDIS_PASS}
 
+  mail:
+    host: ${MAIL_HOST}
+    port: ${MAIL_PORT}
+    username: ${MAIL_USERNAME}
+    password: ${MAIL_PASSWORD}
+    protocol: ${MAIL_PROTOCOL}
+    properties:
+      mail.smtp.auth: ${MAIL_SMTP_AUTH}
+      mail.smtp.starttls.enable: ${MAIL_SMTP_STARTTLS_ENABLE}
+
 server:
   port: ${SERVER_PORT}
 
