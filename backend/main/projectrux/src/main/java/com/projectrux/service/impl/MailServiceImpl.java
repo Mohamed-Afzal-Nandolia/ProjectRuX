@@ -12,7 +12,7 @@ public class MailServiceImpl implements MailService {
     @Autowired
     private JavaMailSender javaMailSender;
 
-    public void sendOtpMail(String to, String subject, String otp){
+    public void sendMail(String to, String subject, String otp){
         try{
             SimpleMailMessage mail = new SimpleMailMessage();
             mail.setTo(to);

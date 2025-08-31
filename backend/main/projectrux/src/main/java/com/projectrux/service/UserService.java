@@ -17,6 +17,10 @@ public interface UserService {
 
     public Map<String, String> login(UserDto authUserDto);
 
+    public Map<String, String> forgotPassword(UserDto userDto);
+
+    public Map<String, String> resetPassword(String token, UserDto userDto);
+
     public UserDto updateUser(UserDto userDto);
 
     public String deleteUser(String id);

@@ -2,6 +2,7 @@ package com.projectrux.service.impl;
 
 
 import com.projectrux.entity.Otp;
+import com.projectrux.entity.PasswordResetToken;
 import com.projectrux.entity.User;
 import com.projectrux.enums.Skill;
 import com.projectrux.enums.UserStatus;
@@ -10,12 +11,14 @@ import com.projectrux.exception.ResourceNotFoundException;
 import com.projectrux.model.OtoDto;
 import com.projectrux.model.UserDto;
 import com.projectrux.repository.OtpRepository;
+import com.projectrux.repository.PasswordResetTokenRepository;
 import com.projectrux.repository.UserRepository;
 import com.projectrux.security.JwtUtil;
 import com.projectrux.service.MailService;
 import com.projectrux.service.UserService;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -44,6 +47,12 @@ public class UserServiceImpl implements UserService {
     @Autowired
     JwtUtil jwtUtil;
 
+    @Autowired
+    PasswordResetTokenRepository passwordResetTokenRepository;
+
+    @Value("${frontend.url}")
+    String frontendUrl;
+
     private User findUser(String id) {
         return userRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("User does not exist with id: " + id));
@@ -71,7 +80,7 @@ public class UserServiceImpl implements UserService {
         otpEntity.setExpiryTime(LocalDateTime.now().plusMinutes(5));
         otpRepository.save(otpEntity);
 
-        mailService.sendOtpMail(savedUser.getEmail(), "", otpEntity.getOtpCode());
+        mailService.sendMail(savedUser.getEmail(), "Verification OTP - ProjectRuX", otpEntity.getOtpCode());
         return Map.of("success", "OTP has been sent to your Email");
     }
 
@@ -120,7 +129,7 @@ public class UserServiceImpl implements UserService {
         otpEntity.setExpiryTime(LocalDateTime.now().plusMinutes(5));
         otpRepository.save(otpEntity);
 
-        mailService.sendOtpMail(user.getEmail(), "", otpEntity.getOtpCode());
+        mailService.sendMail(user.getEmail(), "New Verification OTP - ProjectRuX", otpEntity.getOtpCode());
         return Map.of("success", "New OTP has been sent to your Email");
     }
 
@@ -145,6 +154,53 @@ public class UserServiceImpl implements UserService {
 
         return Map.of("token", jwtUtil.generateToken(Map.of("username", user.getUsername())));
     }
+
+    @Override
+    public Map<String, String> forgotPassword(UserDto userDto){
+
+        User user = userRepository.findByEmail(userDto.getEmail())
+                .orElseThrow(() -> new ResourceNotFoundException("Email id: '" + userDto.getEmail() + "' not found"));
+
+        PasswordResetToken passwordResetToken = new PasswordResetToken();
+        passwordResetToken.setUserId(user.getId());
+        passwordResetToken.setResetToken(UUID.randomUUID().toString());
+        passwordResetToken.setExpiryTime(LocalDateTime.now().plusMinutes(5));
+        passwordResetTokenRepository.save(passwordResetToken);
+
+        String url = frontendUrl + "/auth/reset-password?token=" + passwordResetToken.getResetToken();
+        mailService.sendMail(user.getEmail(), "Password Reset Link - ProjectRux", url);
+        return Map.of("success", "Password Reset Link has been sent to your Email");
+    }
+
+    @Override
+    public Map<String, String> resetPassword(String token, UserDto userDto) {
+        // 1. Find token
+        PasswordResetToken resetToken = passwordResetTokenRepository.findByResetToken(token);
+        if (resetToken == null) {
+            throw new ResourceNotFoundException("Invalid reset token");
+        }
+
+        // 2. Check expiry
+        if (resetToken.getExpiryTime().isBefore(LocalDateTime.now())) {
+            throw new IllegalStateException("Reset token has expired");
+        }
+
+        // 3. Get user
+        User user = userRepository.findById(resetToken.getUserId())
+                .orElseThrow(() -> new ResourceNotFoundException("User not found for this reset token"));
+
+        // 4. Update password
+        String encodedPassword = passwordEncoder.encode(userDto.getPassword());
+        user.setPassword(encodedPassword);
+        userRepository.save(user);
+
+        // 5. Delete token after use
+        passwordResetTokenRepository.delete(resetToken);
+
+        // 6. Return success
+        return Map.of("success", "Password has been reset successfully");
+    }
+
 
     @Override
     public UserDto updateUser(UserDto userDto) {

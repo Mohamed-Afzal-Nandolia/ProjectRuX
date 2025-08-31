@@ -70,4 +70,16 @@ public class AuthController {
         }
     }
 
+    @PostMapping("/forgot-password")
+    public ResponseEntity<Map<String, String>> forgotPassword(@RequestBody UserDto userDto){
+        Map<String, String> message = userService.forgotPassword(userDto);
+        return ResponseEntity.ok(message);
+    }
+
+    @PostMapping("/reset-password")
+    public ResponseEntity<Map<String, String>> resetPassword(@RequestParam("token") String token, @RequestBody UserDto userDto){
+        Map<String, String> message = userService.resetPassword(token, userDto);
+        return ResponseEntity.ok(message);
+    }
+
 }

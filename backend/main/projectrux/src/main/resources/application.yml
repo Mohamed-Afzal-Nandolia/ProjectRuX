@@ -29,6 +29,8 @@ server:
 jwt:
   secretKey: ${SECRET_KEY}
 
+frontend:
+  url: ${FRONTEND_URL}
 logging:
   level:
     org.springframework.security: DEBUG
