@@ -1,21 +1,30 @@
-"use client"
+"use client";
 
-import * as React from "react"
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { cn } from "@/lib/utils"
-import { OTPInput } from "./otp-input"
+import { useRouter } from "next/navigation";
+import * as React from "react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
+import { OTPInput } from "./otp-input";
+import { authResendOtp, authVerifyOtp, getUserIdByEmail } from "@/services/api";
 
 type OtpCardProps = {
-  email?: string
-  length?: number
-  title?: string
-  description?: string
-  defaultValue?: string
-  className?: string
-  onVerify?: (code: string) => Promise<void> | void
-  onResend?: () => Promise<void> | void
-}
+  email?: string;
+  length?: number;
+  title?: string;
+  description?: string;
+  defaultValue?: string;
+  className?: string;
+  onVerify?: (otpCode: string) => Promise<void> | void;
+  onResend?: () => Promise<void> | void;
+};
 
 export function OtpCard({
   email,
@@ -27,63 +36,105 @@ export function OtpCard({
   onVerify,
   onResend,
 }: OtpCardProps) {
-  const [code, setCode] = React.useState<string>(defaultValue.slice(0, length))
-  const [submitting, setSubmitting] = React.useState(false)
-  const [cooldown, setCooldown] = React.useState(0)
-  const [error, setError] = React.useState<string | null>(null)
+  const router = useRouter();
+  const [otpCode, setOtpCode] = React.useState<string>(
+    defaultValue.slice(0, length)
+  );
+  const [submitting, setSubmitting] = React.useState(false);
+  const [cooldown, setCooldown] = React.useState(0);
+  const [error, setError] = React.useState<string | null>(null);
 
   // Cooldown timer for resend
   React.useEffect(() => {
-    if (cooldown <= 0) return
-    const id = setInterval(() => setCooldown((c) => c - 1), 1000)
-    return () => clearInterval(id)
-  }, [cooldown])
+    if (cooldown <= 0) return;
+    const id = setInterval(() => setCooldown((c) => c - 1), 1000);
+    return () => clearInterval(id);
+  }, [cooldown]);
 
   const maskedEmail = React.useMemo(() => {
-    if (!email) return ""
-    const [user = "", domain = ""] = email.split("@")
+    if (!email) return "";
+    const [user = "", domain = ""] = email.split("@");
     const safeUser =
-      user.length > 2 ? `${user[0]}${"•".repeat(Math.max(1, user.length - 2))}${user[user.length - 1]}` : user
-    return `${safeUser}@${domain}`
-  }, [email])
+      user.length > 2
+        ? `${user[0]}${"•".repeat(Math.max(1, user.length - 2))}${
+            user[user.length - 1]
+          }`
+        : user;
+    return `${safeUser}@${domain}`;
+  }, [email]);
 
   const handleVerify = async () => {
-    if (code.replace(/\s/g, "").length !== length) return
-    setSubmitting(true)
-    setError(null)
+    if (otpCode.replace(/\s/g, "").length !== length || !email) return;
+    setSubmitting(true);
+    setError(null);
+
+    localStorage.setItem("otp-code", otpCode);
     try {
-      await onVerify?.(code)
+      // Step 1: Get userId
+      const res1 = await getUserIdByEmail({ email });
+      const userId = res1.data?.success; // backend returns Map.of("success", userId)
+      console.log("userId: ", userId);
+
+      if (!userId) throw new Error("User ID not found");
+
+      // Step 2: Verify OTP with userId
+      const res2 = await authVerifyOtp(userId, { otpCode });
+      const token = res2.data?.token;
+
+      if (!token) throw new Error("OTP verification failed");
+
+      // Step 3: Store JWT
+      localStorage.setItem("token", token);
+
+      // Step 4: Redirect to homepage
+      router.push("/");
     } catch (e: any) {
-      setError(e?.message || "Verification failed. Try again.")
+      setError(
+        e?.response?.data?.message ||
+          e?.message ||
+          "Verification failed. Try again."
+      );
     } finally {
-      setSubmitting(false)
+      setSubmitting(false);
     }
-  }
+  };
 
   const handleResend = async () => {
-    if (cooldown > 0) return
+    const otp = localStorage.getItem("otp-code");
+    if (cooldown > 0) return;
     try {
-      await onResend?.()
-      setCooldown(30) // basic cooldown; adjust as needed
-    } catch {
-      // Optionally surface resend errors
+      // 1. get userId
+      const { data: userIdResponse } = await getUserIdByEmail({ email });
+      const userId = userIdResponse.success;
+
+      // 2. resend OTP
+      const res = await authResendOtp(userId, { otpCode });
+
+      setCooldown(30); // start cooldown
+    } catch (e: any) {
+      setError(e?.message || "Resend failed. Try again.");
     }
-  }
+  };
 
   return (
     <Card className={cn("w-full max-w-md", className)}>
       <CardHeader>
         <CardTitle className="text-pretty">{title}</CardTitle>
         <CardDescription className="text-pretty">
-          {description} {email ? <span className="font-medium text-foreground">Sent to {maskedEmail}</span> : null}
+          {description}{" "}
+          {email ? (
+            <span className="font-medium text-foreground">
+              Sent to {maskedEmail}
+            </span>
+          ) : null}
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-5">
         <OTPInput
           length={length}
-          value={code}
-          onChange={setCode}
-          onComplete={(v) => setCode(v)}
+          value={otpCode}
+          onChange={setOtpCode}
+          onComplete={(v) => setOtpCode(v)}
           error={Boolean(error)}
           autoFocus
           name="otp"
@@ -93,12 +144,13 @@ export function OtpCard({
           <p className="text-muted-foreground">Didn{"'"}t get the code?</p>
           <button
             type="button"
-            
             onClick={handleResend}
             disabled={cooldown > 0}
             className={cn(
               "underline underline-offset-4 hover:cursor-pointer",
-              cooldown > 0 ? "text-muted-foreground cursor-not-allowed" : "text-foreground",
+              cooldown > 0
+                ? "text-muted-foreground cursor-not-allowed"
+                : "text-foreground"
             )}
             aria-disabled={cooldown > 0}
           >
@@ -110,13 +162,13 @@ export function OtpCard({
         <Button
           className="w-full"
           onClick={handleVerify}
-          disabled={submitting || code.replace(/\s/g, "").length !== length}
+          disabled={submitting || otpCode.replace(/\s/g, "").length !== length}
         >
           {submitting ? "Verifying…" : "Verify"}
         </Button>
       </CardFooter>
     </Card>
-  )
+  );
 }
 
-export default OtpCard
+export default OtpCard;

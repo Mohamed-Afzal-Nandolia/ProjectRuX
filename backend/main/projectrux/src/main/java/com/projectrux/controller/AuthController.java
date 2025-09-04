@@ -28,6 +28,12 @@ public class AuthController {
         return ResponseEntity.ok(message);
     }
 
+    @PostMapping("/get-userId")
+    public ResponseEntity<Map<String, String>> getUserByEmailId(@RequestBody UserDto email){
+        Map<String, String> message = userService.getUserByEmailId(email);
+        return ResponseEntity.ok(message);
+    }
+
     @PostMapping("/verify-otp/{userId}")
     public ResponseEntity<Map<String, String>> verifyOtp(@PathVariable String userId, @RequestBody OtoDto otp){
         Map<String, String> token = userService.verifyOtp(userId, otp);

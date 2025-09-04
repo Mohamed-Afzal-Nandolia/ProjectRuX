@@ -84,6 +84,15 @@ public class UserServiceImpl implements UserService {
         return Map.of("success", "OTP has been sent to your Email");
     }
 
+    public Map<String, String> getUserByEmailId(UserDto userDto) {
+        Optional<User> optionalUser = userRepository.findByEmail(userDto.getEmail());
+        if(optionalUser.isPresent()){
+            User user = optionalUser.get();
+            return Map.of("success", user.getId());
+        }
+        return Map.of("error", "Email id '" + userDto.getEmail() + "' doesn't exists");
+    }
+
     private String generateOtp() {
         int otp = (int)(Math.random() * 900000) + 100000; // 6-digit random
         return String.valueOf(otp);
@@ -121,9 +130,14 @@ public class UserServiceImpl implements UserService {
     public Map<String, String> resendOtp(String userId, OtoDto otp) {
         User user = findUser(userId);
 
+        if(user.getStatus().equals(UserStatus.ACTIVE)){
+            return Map.of("error", "Otp verification is already done");
+        }
+
         Otp otpEntity = otpRepository.findByUserId(userId);
         if(otpEntity == null) {
-            return Map.of("error", "No OTP found");
+            otpEntity = new Otp();
+//            return Map.of("error", "No OTP found");
         }
         otpEntity.setOtpCode(generateOtp());
         otpEntity.setExpiryTime(LocalDateTime.now().plusMinutes(5));

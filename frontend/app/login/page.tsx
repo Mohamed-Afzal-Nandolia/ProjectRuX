@@ -1,6 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -13,9 +14,38 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ModeToggle } from "@/components/ui/modetoggle";
+import { authLogin } from "@/services/api"; // 👈 import your API
 
 export default function Login() {
   const router = useRouter();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    setError(null);
+
+    try {
+      const { data } = await authLogin({ email, password });
+
+      if (data?.token) {
+        // Save token to localStorage
+        localStorage.setItem("token", data.token);
+
+        // Redirect to homepage
+        router.push("/");
+      } else {
+        setError("Invalid response from server");
+      }
+    } catch (err: any) {
+      setError(err.response?.data?.message || "Login failed. Try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <Card className="w-full max-w-sm">
@@ -33,7 +63,7 @@ export default function Login() {
       </CardHeader>
 
       <CardContent>
-        <form>
+        <form onSubmit={handleLogin}>
           <div className="flex flex-col gap-6">
             <div className="grid gap-2">
               <Label htmlFor="email">Email</Label>
@@ -41,6 +71,8 @@ export default function Login() {
                 id="email"
                 type="email"
                 placeholder="m@example.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
                 required
               />
             </div>
@@ -52,24 +84,28 @@ export default function Login() {
                 id="password"
                 type="password"
                 placeholder="*********"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
                 required
               />
             </div>
           </div>
+
+          {error && <p className="text-red-500 text-sm mt-2">{error}</p>}
+
+          <CardFooter className="flex-col gap-2 mt-6">
+            <Button
+              type="submit"
+              className="w-full cursor-pointer"
+              disabled={loading}
+            >
+              {loading ? "Logging in..." : "Login"}
+            </Button>
+
+            <ModeToggle />
+          </CardFooter>
         </form>
       </CardContent>
-
-      <CardFooter className="flex-col gap-2">
-        <Button type="submit" className="w-full cursor-pointer">
-          Login
-        </Button>
-
-        {/* <Button variant="outline" className="w-full cursor-pointer">
-          Login with Google
-        </Button> */}
-
-        <ModeToggle />
-      </CardFooter>
     </Card>
   );
 }

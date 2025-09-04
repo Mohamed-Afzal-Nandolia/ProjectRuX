@@ -11,6 +11,8 @@ public interface UserService {
 
     public Map<String, String> signup(UserDto authUserDto);
 
+    public Map<String, String> getUserByEmailId(UserDto userDto);
+
     public Map<String, String> verifyOtp(String userId, OtoDto otp);
 
     public Map<String, String> resendOtp(String userId, OtoDto otp);
