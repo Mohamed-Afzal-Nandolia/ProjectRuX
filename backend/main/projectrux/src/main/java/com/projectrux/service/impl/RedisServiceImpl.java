@@ -31,6 +31,11 @@ public class RedisServiceImpl implements RedisService {
     }
 
     @Override
+    public void delete(String key) {
+        redisTemplate.delete(key);
+    }
+
+    @Override
     public <T> T get(String key, Class<T> type, Long ttlSeconds) {
         try {
             Object value = redisTemplate.opsForValue().get(key);

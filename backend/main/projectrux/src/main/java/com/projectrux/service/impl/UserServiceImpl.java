@@ -10,6 +10,7 @@ import com.projectrux.exception.ResourceAlreadyExists;
 import com.projectrux.exception.ResourceNotFoundException;
 import com.projectrux.model.OtoDto;
 import com.projectrux.model.UserDto;
+import com.projectrux.model.UserProfileDto;
 import com.projectrux.repository.OtpRepository;
 import com.projectrux.repository.PasswordResetTokenRepository;
 import com.projectrux.repository.UserRepository;
@@ -123,7 +124,12 @@ public class UserServiceImpl implements UserService {
         userRepository.save(user);
         otpRepository.delete(otpEntity);
 
-        return Map.of("token", jwtUtil.generateToken(Map.of("username", user.getUsername())));
+        Map<String, String> res = new HashMap<>();
+        res.put("id", user.getId());
+        res.put("username", user.getUsername());
+        res.put("email", user.getEmail());
+
+        return Map.of("token", jwtUtil.generateToken(res));
     }
 
     @Override
@@ -161,12 +167,20 @@ public class UserServiceImpl implements UserService {
             return Map.of("error", "Email Id or Username not provided");
         }
 
+        if(user.getStatus() == UserStatus.PENDING){
+            throw new ResourceNotFoundException("Account is not verified");
+        }
 
         if(!passwordEncoder.matches(userDto.getPassword(), user.getPassword())){
             throw new ResourceNotFoundException("Incorrect Password");
         }
 
-        return Map.of("token", jwtUtil.generateToken(Map.of("username", user.getUsername())));
+        Map<String, String> res = new HashMap<>();
+        res.put("id", user.getId());
+        res.put("username", user.getUsername());
+        res.put("email", user.getEmail());
+
+        return Map.of("token", jwtUtil.generateToken(res));
     }
 
     @Override
@@ -236,6 +250,19 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    public UserDto updateUserRoleAndSkills(UserDto userDto) {
+        User user = findUser(userDto.getId());
+
+        user.setSkills(userDto.getSkills());
+        user.setBio(userDto.getBio());
+        user.setCreatedAt(userDto.getCreatedAt());
+
+        User updatedUser = userRepository.save(user);
+
+        return modelMapper.map(updatedUser, UserDto.class);
+    }
+
+    @Override
     public String deleteUser(String id) {
         User user = findUser(id);
         userRepository.deleteById(id);
@@ -244,9 +271,9 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public UserDto getUserById(String id) {
+    public UserProfileDto getUserById(String id) {
         User user = findUser(id);
-        return modelMapper.map(user, UserDto.class);
+        return modelMapper.map(user, UserProfileDto.class);
     }
 
     @Override

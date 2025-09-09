@@ -10,4 +10,6 @@ public interface RedisService {
 
     public void set(String key, Object value, Long ttlSeconds);
 
+    public void delete(String key);
+
 }

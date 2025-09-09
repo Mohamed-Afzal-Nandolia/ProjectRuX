@@ -14,6 +14,7 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { OTPInput } from "./otp-input";
 import { authResendOtp, authVerifyOtp, getUserIdByEmail } from "@/services/api";
+import { toast } from "sonner";
 
 type OtpCardProps = {
   email?: string;
@@ -88,6 +89,7 @@ export function OtpCard({
 
       // Step 4: Redirect to homepage
       router.push("/");
+      toast.success("Account verified Succesfully");
     } catch (e: any) {
       setError(
         e?.response?.data?.message ||

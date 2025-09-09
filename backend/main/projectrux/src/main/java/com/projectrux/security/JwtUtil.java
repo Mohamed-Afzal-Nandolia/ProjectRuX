@@ -22,7 +22,9 @@ public class JwtUtil {
 
     public String generateToken(Map<String, String> tokenData) {
         return Jwts.builder()
-                .setSubject(tokenData.getOrDefault("username", "no Username was provided"))
+                .setSubject(tokenData.get("id"))
+                .claim("username", tokenData.get("username"))
+                .claim("email", tokenData.get("email"))
                 .setIssuer("Auth")
                 .setIssuedAt(new Date())
                 .setExpiration(new Date(System.currentTimeMillis() + EXPIRATION))

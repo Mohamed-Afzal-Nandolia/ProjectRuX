@@ -36,6 +36,6 @@ public class PostDto {
 
     private List<Applicant> applicants;
 
-    private List<String> likes;
+    private long applied;
 
 }

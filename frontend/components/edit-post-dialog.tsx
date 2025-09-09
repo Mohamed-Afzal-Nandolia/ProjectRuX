@@ -15,34 +15,44 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { TagsInput } from "./tags-input";
+import { TagsInput } from "@/components/ui//tags-input";
 import { FilterableTagsInput } from "@/components/filterable-tags-input";
-import { getAllSkills, getAllRoles, createPost } from "@/services/api";
+import { getAllSkills, getAllRoles, updatePostById } from "@/services/api";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Collapsible, CollapsibleContent } from "@/components/ui/collapsible";
 import { formatEnumLabel } from "@/components/filterable-tags-input";
 import { getUserId } from "@/utils/jwt";
 
-type RoleRequirement = {
+export type RoleRequirement = {
   role: string;
   requiredSkills: string[];
   openings: number;
   _editing?: boolean;
 };
 
-type CreatePostDialogProps = {
+export type PostDialogProps = {
   children?: React.ReactNode;
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
-  initialData?: any; // 👈 prefill form when editing
-  onSubmitOverride?: (payload: any) => Promise<void>; // 👈 optional override
+  initialData?: {
+    id: string;
+    title: string;
+    description: string;
+    tags: string[];
+    rolesRequired: RoleRequirement[];
+  };
+  onSubmitOverride?: (payload: any) => Promise<void>;
+  onPostUpdated?: () => Promise<void>;
 };
 
-export function CreatePostDialog({
+export function EditPostDialog({
   children,
   open: openProp,
   onOpenChange,
-}: CreatePostDialogProps) {
+  initialData,
+  onSubmitOverride,
+  onPostUpdated,
+}: PostDialogProps) {
   const router = useRouter();
   const [internalOpen, setInternalOpen] = React.useState(false);
   const controlled = typeof openProp === "boolean";
@@ -52,22 +62,21 @@ export function CreatePostDialog({
     else setInternalOpen(next);
   };
 
-  // form states
-  const [title, setTitle] = React.useState("");
-  const [description, setDescription] = React.useState("");
-  const [rolesRequired, setRolesRequired] = React.useState<RoleRequirement[]>(
-    []
+  const [title, setTitle] = React.useState(initialData?.title ?? "");
+  const [description, setDescription] = React.useState(
+    initialData?.description ?? ""
   );
-  const [tags, setTags] = React.useState<string[]>([]);
+  const [rolesRequired, setRolesRequired] = React.useState<RoleRequirement[]>(
+    initialData?.rolesRequired ?? []
+  );
+  const [tags, setTags] = React.useState<string[]>(initialData?.tags ?? []);
   const [submitting, setSubmitting] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
 
-  // dynamic options
   const [skillsOptions, setSkillsOptions] = React.useState<string[]>([]);
   const [rolesOptions, setRolesOptions] = React.useState<string[]>([]);
   const [loadingOptions, setLoadingOptions] = React.useState(false);
 
-  // fetch skills + roles
   React.useEffect(() => {
     if (!open) return;
     const fetchData = async () => {
@@ -120,26 +129,28 @@ export function CreatePostDialog({
     }
 
     const payloadRoles = rolesRequired.map(({ _editing, ...rest }) => rest);
-    const createdBy = getUserId();
+
+    // include post ID in payload
+    const payload = {
+      title: t,
+      description,
+      rolesRequired: payloadRoles,
+      tags,
+    };
+
     setSubmitting(true);
     try {
-      const res = await createPost({
-        createdBy,
-        title: t,
-        description,
-        rolesRequired: payloadRoles,
-        tags,
-      });
-
-      if (!res || (res.data && res.data.error)) {
-        throw new Error(res?.data?.message || "Failed to create post");
+      if (onSubmitOverride) {
+        await onSubmitOverride({ id: initialData?.id, ...payload });
+      } else if (initialData?.id) {
+        // ✅ pass ID as first argument, payload as second
+        await updatePostById(initialData.id, payload);
       }
 
-      router.refresh();
-      setTitle("");
-      setDescription("");
-      setRolesRequired([]);
-      setTags([]);
+      if (onPostUpdated) {
+        await onPostUpdated();
+      }
+
       setOpen(false);
     } catch (err: any) {
       setError(err.message || "Something went wrong");
@@ -151,43 +162,38 @@ export function CreatePostDialog({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        {children ?? <Button>Create New Post</Button>}
+        {children ?? <Button>Edit Post</Button>}
       </DialogTrigger>
       <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="text-balance">Create a new post</DialogTitle>
+          <DialogTitle className="text-balance">Edit Post</DialogTitle>
           <DialogDescription>
-            Share what you are building and find collaborators.
+            Update your project details and roles.
           </DialogDescription>
         </DialogHeader>
 
         <form onSubmit={onSubmit} className="space-y-4">
-          {/* title */}
           <div className="space-y-2">
             <Label htmlFor="title">Title</Label>
             <Input
               id="title"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              placeholder="e.g., Building an open-source AI email app"
               required
               minLength={3}
             />
           </div>
 
-          {/* description */}
           <div className="space-y-2">
             <Label htmlFor="description">Description</Label>
             <Textarea
               id="description"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              placeholder="Describe your project, goals, and what you're looking for."
               rows={4}
             />
           </div>
 
-          {/* roles required */}
           <div className="space-y-2">
             <Label>Roles Required</Label>
             {rolesRequired.map((rr, index) => (
@@ -234,7 +240,6 @@ export function CreatePostDialog({
                 >
                   <CollapsibleContent>
                     <CardContent className="space-y-3">
-                      {/* role */}
                       <div className="space-y-1">
                         <Label>Role</Label>
                         <FilterableTagsInput
@@ -252,7 +257,6 @@ export function CreatePostDialog({
                         />
                       </div>
 
-                      {/* skills */}
                       <div className="space-y-1">
                         <Label>Required Skills</Label>
                         <FilterableTagsInput
@@ -270,7 +274,6 @@ export function CreatePostDialog({
                         />
                       </div>
 
-                      {/* openings */}
                       <div className="space-y-1">
                         <Label>Openings</Label>
                         <Input
@@ -301,18 +304,16 @@ export function CreatePostDialog({
             </Button>
           </div>
 
-          {/* tags */}
           <div className="space-y-2">
             <Label>Tags</Label>
             <TagsInput
-              aria-label="Tags"
               value={tags}
               onChange={setTags}
               placeholder="Add tags (Enter), e.g., OSS"
             />
           </div>
 
-          {error ? <p className="text-sm text-destructive">{error}</p> : null}
+          {error && <p className="text-sm text-destructive">{error}</p>}
 
           <DialogFooter>
             <Button
@@ -324,7 +325,7 @@ export function CreatePostDialog({
               Cancel
             </Button>
             <Button type="submit" disabled={submitting}>
-              {submitting ? "Posting…" : "Post"}
+              {submitting ? "Updating…" : "Update Post"}
             </Button>
           </DialogFooter>
         </form>
@@ -333,4 +334,4 @@ export function CreatePostDialog({
   );
 }
 
-export { DialogTrigger as CreatePostTrigger };
+export { DialogTrigger as EditPostTrigger };

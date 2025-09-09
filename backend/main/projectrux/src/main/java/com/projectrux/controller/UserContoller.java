@@ -1,6 +1,7 @@
 package com.projectrux.controller;
 
 import com.projectrux.model.UserDto;
+import com.projectrux.model.UserProfileDto;
 import com.projectrux.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -34,6 +35,12 @@ public class UserContoller {
         return ResponseEntity.ok(userObj);
     }
 
+    @PutMapping("/update-user-roles-and-skills")
+    public ResponseEntity<UserDto> updateUserRoleAndSkills(@RequestBody UserDto userDto){
+        UserDto userObj = userService.updateUserRoleAndSkills(userDto);
+        return ResponseEntity.ok(userObj);
+    }
+
     @DeleteMapping("/delete-user/{id}")
     public ResponseEntity<String> deleteUser(@PathVariable("id") String id){
         String message = userService.deleteUser(id);
@@ -41,9 +48,9 @@ public class UserContoller {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<UserDto> getUserById(@PathVariable("id") String id){
-        UserDto userDto = userService.getUserById(id);
-        return ResponseEntity.ok(userDto);
+    public ResponseEntity<UserProfileDto> getUserById(@PathVariable("id") String id){
+        UserProfileDto userProfileDto = userService.getUserById(id);
+        return ResponseEntity.ok(userProfileDto);
     }
 
     @GetMapping

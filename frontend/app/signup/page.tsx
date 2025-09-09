@@ -16,6 +16,7 @@ import { ModeToggle } from "@/components/ui/modetoggle";
 import { authSignup } from "@/services/api";
 import { useState } from "react";
 import { AuthProvider } from "@/providers/auth-provider";
+import { toast } from "sonner";
 
 export default function Signup() {
   const router = useRouter();
@@ -35,6 +36,7 @@ export default function Signup() {
 
       localStorage.setItem("user-email", email);
       router.push("/signup/otp");
+      toast.info("Verify your account");
     } catch (err: any) {
       console.error("Signup Error: ", err.response?.data || err.message);
     }

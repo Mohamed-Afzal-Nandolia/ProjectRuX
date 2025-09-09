@@ -3,6 +3,7 @@ package com.projectrux.service;
 
 import com.projectrux.model.OtoDto;
 import com.projectrux.model.UserDto;
+import com.projectrux.model.UserProfileDto;
 
 import java.util.List;
 import java.util.Map;
@@ -25,9 +26,11 @@ public interface UserService {
 
     public UserDto updateUser(UserDto userDto);
 
+    public UserDto updateUserRoleAndSkills(UserDto userDto);
+
     public String deleteUser(String id);
 
-    public UserDto getUserById(String id);
+    public UserProfileDto getUserById(String id);
 
     public Map<String, List<String>> addUserSkills(String id, List<String> skills);
 

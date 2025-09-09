@@ -39,7 +39,6 @@ public class Post {
 
     private List<Applicant> applicants;
 
-    private List<String> likes;
+    private long applied;
 
 }
-

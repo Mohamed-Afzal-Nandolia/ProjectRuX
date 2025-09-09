@@ -6,3 +6,15 @@ export const authVerifyOtp = (id: string, data: any) => api.post(`/auth/verify-o
 export const authResendOtp = (id: string, data: any) => api.post(`/auth/resend-otp/${id}`, data);
 export const authLogin = (data: any) => api.post("/auth/login", data);
 export const validateAuthToken = (data: any) => api.post("/auth/validate", data);
+export const getAllSkills = (data: any) => api.get("/post/get-all-skills", data);
+export const getAllRoles = (data: any) => api.get("/post/get-all-roles", data);
+export const createPost = (data: any) => api.post("/post/create-post", data);
+export const getAllPost = (data: any) => api.get("/post/get-all-post", data);
+export const updateUserRoleAndSkill = (data: any) => api.put("/user/update-user-roles-and-skills", data);
+export const getUserProfile = (id: string, data: any) => api.get(`/user/${id}`, data);
+export const applyForPosition = (id: string, data: any) => api.post(`/post/add-applicants/${id}`, data);
+export const getUserPostById = (id: string, data: any) => api.get(`/post/get-user-post/${id}`, data);
+export const deletePostById = (id: string, data: any) => api.delete(`/post/delete-post/${id}`, data);
+export const updatePostById = (id: string, data: any) => api.put(`/post/update-post/${id}`, data);
+export const getPostById = (id: string, data: any) => api.get(`/post/get-post/${id}`, data);
+export const getAppliedPosts = (id: string, data: any) => api.get(`/post/applied/${id}`, data);

@@ -4,6 +4,7 @@ package com.projectrux.controller;
 import com.projectrux.entity.Applicant;
 import com.projectrux.entity.RoleRequirement;
 import com.projectrux.enums.PostStatus;
+import com.projectrux.enums.Roles;
 import com.projectrux.enums.Skill;
 import com.projectrux.model.PostDto;
 import com.projectrux.service.PostService;
@@ -40,6 +41,19 @@ public class PostController {
         return ResponseEntity.ok(post);
     }
 
+    // Get All Post Of That User
+    @GetMapping("/get-user-post/{id}")
+    public ResponseEntity<List<PostDto>> getUserPostById(@PathVariable String id){
+        List<PostDto> post = postService.getUserPostById(id);
+        return ResponseEntity.ok(post);
+    }
+
+    @GetMapping("/applied/{userId}")
+    public ResponseEntity<List<PostDto>> getAppliedPosts(@PathVariable String userId) {
+        List<PostDto> postDto = postService.getPostsByApplicantUserId(userId);
+        return ResponseEntity.ok(postDto);
+    }
+
     @GetMapping("/get-all-post")
     public ResponseEntity<List<PostDto>> getAllPost(){
         List<PostDto> allPosts = postService.getAllPosts();
@@ -52,10 +66,22 @@ public class PostController {
         return ResponseEntity.ok("Post deleted Successfully");
     }
 
+    @GetMapping("/get-all-skills")
+    public ResponseEntity<List<Skill>> getAllSkills(){
+        List<Skill> allSkills = postService.getAllSkills();
+        return ResponseEntity.ok(allSkills);
+    }
+
     @PutMapping("/update-techstack/{id}")
     public ResponseEntity<PostDto> updateTechStack(@PathVariable String id, @RequestBody List<Skill> techStack) {
         PostDto updatedPost = postService.updateTechStack(id, techStack);
         return ResponseEntity.ok(updatedPost);
+    }
+
+    @GetMapping("/get-all-roles")
+    public ResponseEntity<List<Roles>> getAllRoles(){
+        List<Roles> allRoles = postService.getAllRoles();
+        return ResponseEntity.ok(allRoles);
     }
 
     @PutMapping("/roles-required/{id}")

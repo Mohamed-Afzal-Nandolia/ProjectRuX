@@ -8,7 +8,7 @@ public enum Skill {
     TYPESCRIPT,
     C,
     CPP, // C++
-    CSKILL, // C#
+    C_SHARP, // C#
     RUBY,
     GO,
     SWIFT,

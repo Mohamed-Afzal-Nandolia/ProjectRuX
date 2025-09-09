@@ -1,13 +1,13 @@
 export interface Post {
-  id: string
-  title: string
-  description?: string
-  techstack: string[]
-  roles: string[]
-  tags: string[]
-  author: {
-    name: string
-    avatarUrl?: string
-  }
-  createdAt: string // ISO string
+  id: string;
+  title: string;
+  description?: string;
+  techStack?: string[] | null;
+  rolesRequired?: { role: string; requiredSkills: string[]; openings: number }[];
+  tags: string[];
+  author?: {
+    name: string;
+    avatarUrl?: string;
+  };
+  createdAt: number[];
 }

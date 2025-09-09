@@ -14,12 +14,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const checkAuth = async () => {
       const token = localStorage.getItem("token");
       if (!token) {
-        router.push("/login");
+        if (pathname === "/signup") {
+          router.push("/signup");
+        } else if (pathname === "/signup/otp") {
+          router.push("/signup/otp");
+        } else {
+          router.push("/login");
+        }
+        setLoading(false);
         return;
       }
 
       try {
-        await validateAuthToken({ token });
+        const data = await validateAuthToken({ token });
         if (
           pathname === "/login" ||
           pathname === "/signup" ||

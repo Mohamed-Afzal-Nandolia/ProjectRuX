@@ -14,7 +14,8 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ModeToggle } from "@/components/ui/modetoggle";
-import { authLogin } from "@/services/api"; // 👈 import your API
+import { authLogin } from "@/services/api";
+import { toast } from "sonner";
 
 export default function Login() {
   const router = useRouter();
@@ -37,11 +38,14 @@ export default function Login() {
 
         // Redirect to homepage
         router.push("/");
+        toast.success("Login Successful");
       } else {
         setError("Invalid response from server");
+        toast.error("Invalid response from server");
       }
     } catch (err: any) {
       setError(err.response?.data?.message || "Login failed. Try again.");
+      toast.error("Login failed. Try again.");
     } finally {
       setLoading(false);
     }

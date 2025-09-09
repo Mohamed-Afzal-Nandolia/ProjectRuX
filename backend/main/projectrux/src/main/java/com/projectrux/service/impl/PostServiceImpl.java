@@ -7,6 +7,7 @@ import com.projectrux.entity.Post;
 import com.projectrux.entity.RoleRequirement;
 import com.projectrux.enums.ApplicantStatus;
 import com.projectrux.enums.PostStatus;
+import com.projectrux.enums.Roles;
 import com.projectrux.enums.Skill;
 import com.projectrux.exception.ResourceAlreadyExists;
 import com.projectrux.exception.ResourceNotFoundException;
@@ -17,9 +18,11 @@ import com.projectrux.service.RedisService;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.parameters.P;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -78,18 +81,41 @@ public class PostServiceImpl implements PostService {
     }
 
     @Override
+    public List<PostDto> getUserPostById(String id) {
+//        List<PostDto> cachedPostsDto = redisService.get("getUserPostById/" + id, new TypeReference<List<PostDto>>() {}, 900L);
+//        if (cachedPostsDto != null) {
+//            return cachedPostsDto;
+//        }
+
+        List<Post> allUserPost = postRepository.findByCreatedBy(id);
+//                orElseThrow(() -> new ResourceNotFoundException("Post Does not exist with id : " + id));
+        List<PostDto> allUserPostDto = allUserPost.stream()
+                .map(post -> mapper.map(post, PostDto.class))
+                .toList();
+
+//        redisService.set("getUserPostById/" + id, allUserPostDto, 900L);
+        return allUserPostDto;
+    }
+
+    @Override
+    public List<PostDto> getPostsByApplicantUserId(String userId) {
+        List<Post> allByApplicantUserId = postRepository.findAllByApplicantUserId(userId);
+        return allByApplicantUserId.stream().map(post -> mapper.map(post, PostDto.class)).toList();
+    }
+
+    @Override
     public List<PostDto> getAllPosts() {
-        List<PostDto> cachedPosts = redisService.get("getAllPosts", new TypeReference<List<PostDto>>() {}, 900L);
-        if (cachedPosts != null) {
-            return cachedPosts;
-        }
+//        List<PostDto> cachedPosts = redisService.get("getAllPosts", new TypeReference<List<PostDto>>() {}, 900L);
+//        if (cachedPosts != null) {
+//            return cachedPosts;
+//        }
 
         List<Post> allPosts = postRepository.findAll();
         List<PostDto> postDtos = allPosts.stream()
                 .map(post -> mapper.map(post, PostDto.class))
                 .collect(Collectors.toList());
 
-        redisService.set("getAllPosts", postDtos, 900L);
+//        redisService.set("getAllPosts", postDtos, 900L);
         return postDtos;
     }
 
@@ -97,6 +123,20 @@ public class PostServiceImpl implements PostService {
     public void deletePost(String id) {
         Post post = postRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Post Does not exist with id : " + id));
         postRepository.deleteById(id);
+
+        String userId = post.getCreatedBy();
+        String cacheKey = "getUserPostById/" + userId;
+        redisService.delete(cacheKey);
+    }
+
+    @Override
+    public List<Skill> getAllSkills() {
+        return List.of(Skill.values());
+    }
+
+    @Override
+    public List<Roles> getAllRoles() {
+        return List.of(Roles.values());
     }
 
     @Override
@@ -128,18 +168,27 @@ public class PostServiceImpl implements PostService {
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new ResourceNotFoundException("Post not found with id: " + postId));
 
-        boolean alreadyApplied = post.getApplicants().stream()
-                .anyMatch(applicant -> applicant.getUserId().equals(newApplicant.getUserId()));
+        List<Applicant> applicants = post.getApplicants();
+        boolean alreadyApplied = false;
 
+        if(applicants != null) {
+            alreadyApplied = applicants.stream().anyMatch(applicant -> applicant.getUserId().equals(newApplicant.getUserId()));
+        }
         if (alreadyApplied) {
             throw new ResourceAlreadyExists("User has already applied to this post.");
         }
 
         newApplicant.setStatus(ApplicantStatus.PENDING);
-
-        post.getApplicants().add(newApplicant);
+        if(applicants == null){
+            applicants = new ArrayList<>();
+            applicants.add(newApplicant);
+            post.setApplicants(applicants);
+        }
+        else{
+            post.getApplicants().add(newApplicant);
+        }
+        post.setApplied(post.getApplied() + 1);
         post.setUpdatedAt(LocalDateTime.now());
-
         Post updatedPost = postRepository.save(post);
 
         return mapper.map(updatedPost, PostDto.class);

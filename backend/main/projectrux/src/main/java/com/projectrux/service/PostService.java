@@ -3,6 +3,7 @@ package com.projectrux.service;
 import com.projectrux.entity.Applicant;
 import com.projectrux.entity.RoleRequirement;
 import com.projectrux.enums.PostStatus;
+import com.projectrux.enums.Roles;
 import com.projectrux.enums.Skill;
 import com.projectrux.model.PostDto;
 
@@ -17,9 +18,17 @@ public interface PostService {
 
     public PostDto getPostById(String id);
 
+    public List<PostDto> getUserPostById(String id);
+
+    public List<PostDto> getPostsByApplicantUserId(String userId);
+
     public List<PostDto> getAllPosts();
 
     public void deletePost(String id);
+
+    public List<Skill> getAllSkills();
+
+    public List<Roles> getAllRoles();
 
     public PostDto updateTechStack(String id, List<Skill> newTechStack);
 
