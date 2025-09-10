@@ -23,20 +23,30 @@ export default function Signup() {
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
-
     try {
-      const res = await authSignup({
-        username,
-        email,
-        password,
-      });
-
+      setLoading(true);
+      const res = await authSignup({ username, email, password });
+      setLoading(false);
       localStorage.setItem("user-email", email);
       router.push("/signup/otp");
-      toast.info("Verify your account");
+
+      if (res.data.error == "User Already exists") {
+        toast.info(
+          <div className="flex flex-col">
+            <span className="font-semibold">User already exists</span>
+            <span className="text-sm text-muted-foreground">
+              Verify with OTP. If you didn’t receive it, you can resend it from
+              the OTP page.
+            </span>
+          </div>
+        );
+      } else {
+        toast.info("Verify your account");
+      }
     } catch (err: any) {
       console.error("Signup Error: ", err.response?.data || err.message);
     }
@@ -101,8 +111,12 @@ export default function Signup() {
             </div>
 
             <CardFooter className="flex-col gap-2 mt-6">
-              <Button type="submit" className="w-full cursor-pointer">
-                Sign Up
+              <Button
+                type="submit"
+                className="w-full cursor-pointer"
+                disabled={loading}
+              >
+                {loading ? "Signing Up..." : "Sign Up"}
               </Button>
               <ModeToggle />
             </CardFooter>

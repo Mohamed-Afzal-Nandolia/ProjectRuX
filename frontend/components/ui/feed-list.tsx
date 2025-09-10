@@ -89,7 +89,7 @@ export function FeedList() {
   }, []);
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4" data-tour="center-feed">
       {posts.map((post: Post) => (
         <Card key={post.id}>
           <CardHeader>

@@ -27,6 +27,8 @@ import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static io.lettuce.core.internal.LettuceClassUtils.isPresent;
+
 @Service
 public class UserServiceImpl implements UserService {
 
@@ -61,12 +63,26 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public Map<String, String> signup(UserDto userDto) {
-        if (userRepository.findByEmail(userDto.getEmail()).isPresent()){
-            throw new ResourceAlreadyExists("Email: '" + userDto.getEmail() + "' Already Exists");
+        Optional<User> byEmail = userRepository.findByEmail(userDto.getEmail());
+        if (byEmail.isPresent()) {
+            User user = byEmail.get();
+            if(user.getStatus() == UserStatus.ACTIVE){
+                throw new ResourceAlreadyExists("Email: '" + userDto.getEmail() + "' Already Exists");
+            }
+            else{
+                return Map.of("error", "User Already exists");
+            }
         }
 
-        if (userRepository.findByUsername(userDto.getUsername()).isPresent()){
-            throw new ResourceAlreadyExists("Username: '" + userDto.getUsername() + "' Already Exists");
+        Optional<User> byUsername = userRepository.findByUsername(userDto.getUsername());
+        if (byUsername.isPresent()){
+            User user = byUsername.get();
+            if(user.getStatus() == UserStatus.ACTIVE){
+                throw new ResourceAlreadyExists("Username: '" + userDto.getUsername() + "' Already Exists");
+            }
+            else{
+                return Map.of("error", "User Already exists");
+            }
         }
 
         String encodedPassword = passwordEncoder.encode(userDto.getPassword());

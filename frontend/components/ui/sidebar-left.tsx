@@ -18,7 +18,7 @@ export function SidebarLeft({
 }: SidebarLeftProps) {
   return (
     <aside className="w-64 shrink-0">
-      <Card>
+      <Card data-tour="left-sidebar">
         <CardHeader>
           <CardTitle className="text-base">Menu</CardTitle>
         </CardHeader>
@@ -29,6 +29,7 @@ export function SidebarLeft({
             className={`w-full justify-start gap-2 hover:bg-gray-200 hover:text-black ${
               activeSection === "home" ? "bg-black text-white" : ""
             }`}
+            data-tour="home-nav"
           >
             <Home className="h-4 w-4" />
             Home
@@ -37,7 +38,8 @@ export function SidebarLeft({
           <CreatePostDialog>
             <Button
               variant="ghost"
-              className="w-full justify-start gap-2 hover:bg-gray-200 hover:text-black"
+              className="w-full justify-start gap-2 hover:bg-accent hover:text-accent-foreground"
+              data-tour="create-post-nav"
             >
               <PlusSquare className="h-4 w-4" />
               Create New Post
@@ -50,6 +52,7 @@ export function SidebarLeft({
             className={`w-full justify-start gap-2 hover:bg-gray-200 hover:text-black ${
               activeSection === "communities" ? "bg-black text-white" : ""
             }`}
+            data-tour="communities-nav"
           >
             <Users className="h-4 w-4" />
             Communities
@@ -63,6 +66,7 @@ export function SidebarLeft({
                 ? "bg-accent text-accent-foreground"
                 : ""
             }`}
+            data-tour="posts-nav"
           >
             <Edit className="h-4 w-4" />
             My Posts
@@ -76,6 +80,7 @@ export function SidebarLeft({
                 ? "bg-accent text-accent-foreground"
                 : ""
             }`}
+            data-tour="applications-nav"
           >
             <FileText className="h-4 w-4" />
             My Applications

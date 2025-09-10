@@ -44,7 +44,7 @@ export function SidebarRight() {
   return (
     <aside className="w-80 shrink-0">
       <div className="space-y-4">
-        <Card>
+        <Card data-tour="right-sidebar">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-base">Your Profile</CardTitle>
             <Button
