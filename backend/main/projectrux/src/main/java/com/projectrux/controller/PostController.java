@@ -6,6 +6,8 @@ import com.projectrux.entity.RoleRequirement;
 import com.projectrux.enums.PostStatus;
 import com.projectrux.enums.Roles;
 import com.projectrux.enums.Skill;
+import com.projectrux.model.ApplicantStatusUpdateRequest;
+import com.projectrux.model.MailDto;
 import com.projectrux.model.PostDto;
 import com.projectrux.service.PostService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,7 +37,7 @@ public class PostController {
         return ResponseEntity.ok(updatedPost);
     }
 
-    @GetMapping("/get-post/{id}")
+    @GetMapping("/post/get-post/{id}")
     public ResponseEntity<PostDto> getPostById(@PathVariable String id){
         PostDto post = postService.getPostById(id);
         return ResponseEntity.ok(post);
@@ -106,7 +108,7 @@ public class PostController {
     public ResponseEntity<Map<String, Applicant>> updateApplicantStatus(
             @PathVariable String postId,
             @PathVariable String applicantId,
-            @RequestBody Applicant applicantStatus){
+            @RequestBody ApplicantStatusUpdateRequest applicantStatus){
         Map<String, Applicant> updatedApplicantStatus = postService.updateApplicantStatus(postId, applicantId, applicantStatus);
 
         return ResponseEntity.ok(updatedApplicantStatus);

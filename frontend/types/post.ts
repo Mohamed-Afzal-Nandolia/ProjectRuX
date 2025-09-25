@@ -2,12 +2,23 @@ export interface Post {
   id: string;
   title: string;
   description?: string;
-  techStack?: string[] | null;
-  rolesRequired?: { role: string; requiredSkills: string[]; openings: number }[];
+  techstack?: string[];
+  roles?: string[];
   tags: string[];
-  author?: {
+  status?: string;
+  author: {
     name: string;
     avatarUrl?: string;
   };
-  createdAt: number[];
+  createdAt: string;
+  rolesRequired?: { role: string; requiredSkills: string[]; openings: number }[];
+  applicants?: {
+    userId: string;
+    username?: string;
+    email?: string;
+    roleApplied: string;
+    skills: string[];
+    status: string;
+    applicantPitch: string;
+  }[];
 }

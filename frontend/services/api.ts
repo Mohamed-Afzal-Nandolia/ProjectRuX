@@ -18,3 +18,33 @@ export const deletePostById = (id: string, data: any) => api.delete(`/post/delet
 export const updatePostById = (id: string, data: any) => api.put(`/post/update-post/${id}`, data);
 export const getPostById = (id: string, data: any) => api.get(`/post/get-post/${id}`, data);
 export const getAppliedPosts = (id: string, data: any) => api.get(`/post/applied/${id}`, data);
+export const updatePostStatus = (id: string, status: string) =>
+  api.patch(`/post/update-status/${id}`, JSON.stringify(status), {
+    headers: {
+      "Content-Type": "application/json",
+    },
+  });
+
+export const updateApplicantStatus = (
+  postId: string, 
+  applicantUserId: string, 
+  status: string, 
+  mailData?: {
+    receiverMail: string;
+    subject: string;
+    body: string;
+  }
+) => {
+  const requestData = {
+    applicantStatus: { status },
+    mailDto: mailData || null
+  };
+  
+  return api.patch(
+    `/post/${postId}/applicant/update-status/${applicantUserId}`,
+    requestData,
+    {
+      headers: { "Content-Type": "application/json" },
+    }
+  );
+};

@@ -5,6 +5,8 @@ import com.projectrux.entity.RoleRequirement;
 import com.projectrux.enums.PostStatus;
 import com.projectrux.enums.Roles;
 import com.projectrux.enums.Skill;
+import com.projectrux.model.ApplicantStatusUpdateRequest;
+import com.projectrux.model.MailDto;
 import com.projectrux.model.PostDto;
 
 import java.util.List;
@@ -38,7 +40,7 @@ public interface PostService {
 
     public PostDto removeApplicant(String postId, String userId);
 
-    public Map<String, Applicant> updateApplicantStatus(String postId, String applicantId, Applicant applicantStatus);
+    public Map<String, Applicant> updateApplicantStatus(String postId, String applicantId, ApplicantStatusUpdateRequest applicantStatus);
 
     public Map<String, PostStatus> updatePostStatus(String id, PostStatus postStatus);
 }

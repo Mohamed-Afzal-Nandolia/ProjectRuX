@@ -11,8 +11,11 @@ import com.projectrux.enums.Roles;
 import com.projectrux.enums.Skill;
 import com.projectrux.exception.ResourceAlreadyExists;
 import com.projectrux.exception.ResourceNotFoundException;
+import com.projectrux.model.ApplicantStatusUpdateRequest;
+import com.projectrux.model.MailDto;
 import com.projectrux.model.PostDto;
 import com.projectrux.repository.PostRepository;
+import com.projectrux.service.MailService;
 import com.projectrux.service.PostService;
 import com.projectrux.service.RedisService;
 import lombok.extern.slf4j.Slf4j;
@@ -40,11 +43,15 @@ public class PostServiceImpl implements PostService {
     @Autowired
     private RedisService redisService;
 
+    @Autowired
+    MailService mailService;
+
     @Override
     public PostDto createPost(PostDto postDto) {
         Post post = mapper.map(postDto, Post.class);
         post.setCreatedAt(LocalDateTime.now());
         post.setUpdatedAt(LocalDateTime.now());
+        post.setStatus(PostStatus.OPEN);
         Post save = postRepository.save(post);
         return mapper.map(save, PostDto.class);
     }
@@ -213,14 +220,15 @@ public class PostServiceImpl implements PostService {
     }
 
     @Override
-    public Map<String, Applicant> updateApplicantStatus(String postId, String applicantId, Applicant applicantStatus) {
+    public Map<String, Applicant> updateApplicantStatus(String postId, String applicantId, ApplicantStatusUpdateRequest applicantStatus) {
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new ResourceNotFoundException("Post not found with id: " + postId));
 
         boolean updated = false;
         for (Applicant applicant : post.getApplicants()) {
             if (applicant.getUserId().equals(applicantId)) {
-                applicant.setStatus(applicantStatus.getStatus());
+                mailService.sendMail(applicantStatus.getMailDto().getReceiverMail(), applicantStatus.getMailDto().getSubject(), applicantStatus.getMailDto().getBody());
+                applicant.setStatus(applicantStatus.getApplicantStatus().getStatus());
                 updated = true;
                 break;
             }
@@ -230,7 +238,7 @@ public class PostServiceImpl implements PostService {
             throw new RuntimeException("Applicant not found in post");
         }
         Post saved = postRepository.save(post);
-        return Map.of("Post Updated Successfully", applicantStatus);
+        return Map.of("Post Updated Successfully", applicantStatus.getApplicantStatus());
     }
 
     @Override

@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "./ui/badge";
 import { Separator } from "@/components/ui/seperator";
-import { Calendar, User, Briefcase, Code, Loader2 } from "lucide-react";
+import { Calendar, User, Briefcase, Code, Loader2, Clock, Check, X } from "lucide-react";
 import { getAppliedPosts } from "@/services/api";
 import { getUserId } from "@/utils/jwt";
 
@@ -72,6 +72,9 @@ export function ApplicationsList() {
 
         if (!myApp) return null; // skip if no match (shouldn't happen)
 
+        // Ensure status has a default value
+        const applicationStatus = myApp.status || "PENDING";
+
         return (
           <Card key={post.id}>
             <CardHeader>
@@ -98,6 +101,38 @@ export function ApplicationsList() {
                 <User className="h-4 w-4 text-muted-foreground" />
                 <span className="text-sm font-medium">Applied for:</span>
                 <Badge>{myApp.roleApplied}</Badge>
+              </div>
+
+              {/* Application Status */}
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-medium">Status:</span>
+                <Badge
+                  variant={
+                    applicationStatus === "PENDING"
+                      ? "secondary"
+                      : applicationStatus === "ACCEPTED"
+                      ? "default"
+                      : "outline"
+                  }
+                  className={
+                    applicationStatus === "PENDING"
+                      ? "bg-yellow-500 hover:bg-yellow-600 text-white"
+                      : applicationStatus === "ACCEPTED"
+                      ? "bg-green-600 hover:bg-green-800 text-white"
+                      : "bg-red-500 hover:bg-red-600 text-white border-red-500"
+                  }
+                >
+                  {applicationStatus === "PENDING" && (
+                    <Clock className="h-3 w-3 mr-1" />
+                  )}
+                  {applicationStatus === "ACCEPTED" && (
+                    <Check className="h-3 w-3 mr-1" />
+                  )}
+                  {applicationStatus === "REJECTED" && (
+                    <X className="h-3 w-3 mr-1" />
+                  )}
+                  {applicationStatus}
+                </Badge>
               </div>
 
               <Separator />

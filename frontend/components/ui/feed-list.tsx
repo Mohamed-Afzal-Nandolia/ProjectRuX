@@ -29,6 +29,7 @@ function mapPost(apiPost: any, username?: string): Post {
     roles:
       apiPost.rolesRequired?.map((r: any) => formatEnumLabel(r.role)) || [],
     tags: apiPost.tags || [],
+    status: apiPost.status,
     author: {
       name: username || "Anonymous",
       avatarUrl: undefined,
@@ -75,7 +76,15 @@ export function FeedList() {
           })
         );
 
-        setPosts(postsWithNames);
+        // Filter to only show OPEN posts (hide CLOSED posts)
+        const openPosts = postsWithNames.filter(
+          (post) => post.status === "OPEN"
+        );
+        console.log(
+          `Showing ${openPosts.length} out of ${postsWithNames.length} posts (filtered out CLOSED posts)`
+        );
+
+        setPosts(openPosts);
       } catch (err: any) {
         console.error("Failed to fetch posts", err);
         setError("Failed to load posts");
@@ -112,7 +121,7 @@ export function FeedList() {
                   {new Date(post.createdAt).toLocaleString()}
                 </p>
               </div>
-              {post.roles.length > 0 && (
+              {post.roles && post.roles.length > 0 && (
                 <Button
                   size="sm"
                   onClick={() => {
@@ -133,15 +142,15 @@ export function FeedList() {
               </p>
             ) : null}
             <div className="flex flex-wrap items-center gap-2">
-              {post.techstack.map((t) => (
+              {post.techstack?.map((t) => (
                 <Badge key={t} variant="outline">
                   {t}
                 </Badge>
               ))}
-              {post.roles.length > 0 && (
+              {post.roles && post.roles.length > 0 && (
                 <Separator orientation="vertical" className="mx-1 h-4" />
               )}
-              {post.roles.map((r) => (
+              {post.roles?.map((r) => (
                 <Badge key={r}>{r}</Badge>
               ))}
               {post.tags.length > 0 && (

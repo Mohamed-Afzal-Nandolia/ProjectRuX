@@ -38,13 +38,21 @@ export function FilterableTagsInput({
 
   // Filter options based on input and exclude already selected
   const filteredOptions = React.useMemo(() => {
-    return options
-      .filter(
-        (option) =>
-          !value.includes(option) &&
-          formatEnumLabel(option).toLowerCase().includes(input.toLowerCase())
+    const availableOptions = options.filter(
+      (option) => !value.includes(option)
+    );
+
+    // If no input, show all available options
+    if (!input.trim()) {
+      return availableOptions.slice(0, 8); // Limit to 8 options for better UX
+    }
+
+    // Filter based on input
+    return availableOptions
+      .filter((option) =>
+        formatEnumLabel(option).toLowerCase().includes(input.toLowerCase())
       )
-      .slice(0, 8); // Limit to 8 options for better UX
+      .slice(0, 8);
   }, [options, value, input]);
 
   function addTag(tag: string) {
@@ -91,7 +99,7 @@ export function FilterableTagsInput({
   function onInputChange(e: React.ChangeEvent<HTMLInputElement>) {
     const newValue = e.target.value;
     setInput(newValue);
-    setIsOpen(newValue.length > 0);
+    setIsOpen(true); // Always keep dropdown open when typing
     setFocusedIndex(-1);
   }
 
@@ -99,9 +107,10 @@ export function FilterableTagsInput({
     <div className="relative">
       <div
         className={cn(
-          "flex min-h-10 w-full flex-wrap items-center gap-2 rounded-md border bg-background px-3 py-2",
+          "flex min-h-10 w-full flex-wrap items-center gap-2 rounded-md border bg-background px-3 py-2 cursor-text",
           className
         )}
+        onClick={() => setIsOpen(true)}
       >
         {value.map((tag) => (
           <Badge key={tag} variant="secondary" className="gap-1">
@@ -122,7 +131,7 @@ export function FilterableTagsInput({
             value={input}
             onChange={onInputChange}
             onKeyDown={onKeyDown}
-            onFocus={() => input && setIsOpen(true)}
+            onFocus={() => setIsOpen(true)}
             onBlur={() => setTimeout(() => setIsOpen(false), 150)}
             placeholder={placeholder}
             className="m-0 h-6 flex-1 border-0 p-0 focus-visible:ring-0"
@@ -131,23 +140,33 @@ export function FilterableTagsInput({
         </div>
       </div>
 
-      {isOpen && filteredOptions.length > 0 && (
-        <div className="absolute top-full z-50 mt-1 max-h-60 w-full overflow-auto rounded-md border bg-popover p-1 shadow-md">
-          {filteredOptions.map((option, index) => (
-            <button
-              key={option}
-              type="button"
-              onClick={() => addTag(option)}
-              className={cn(
-                "w-full rounded-sm px-2 py-1.5 text-left text-sm hover:bg-accent hover:text-accent-foreground",
-                index === focusedIndex && "bg-accent text-accent-foreground"
-              )}
-            >
-              {formatEnumLabel(option)}
-            </button>
-          ))}
-        </div>
-      )}
+      {isOpen &&
+        (filteredOptions.length > 0 ||
+          (!input.trim() && options.length > 0)) && (
+          <div className="absolute top-full z-50 mt-1 max-h-60 w-full overflow-auto rounded-md border bg-popover p-1 shadow-md">
+            {filteredOptions.length > 0 ? (
+              filteredOptions.map((option, index) => (
+                <button
+                  key={option}
+                  type="button"
+                  onClick={() => addTag(option)}
+                  className={cn(
+                    "w-full rounded-sm px-2 py-1.5 text-left text-sm hover:bg-accent hover:text-accent-foreground",
+                    index === focusedIndex && "bg-accent text-accent-foreground"
+                  )}
+                >
+                  {formatEnumLabel(option)}
+                </button>
+              ))
+            ) : (
+              <div className="px-2 py-1.5 text-sm text-muted-foreground">
+                {input.trim()
+                  ? "No matching options found"
+                  : "All options selected"}
+              </div>
+            )}
+          </div>
+        )}
     </div>
   );
 }
