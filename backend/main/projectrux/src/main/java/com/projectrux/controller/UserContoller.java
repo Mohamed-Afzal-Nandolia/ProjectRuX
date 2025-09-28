@@ -82,4 +82,10 @@ public class UserContoller {
         return ResponseEntity.ok(updatedUserSkills);
     }
 
+    @GetMapping("/get-stats/{id}")
+    public ResponseEntity<Map<String, Integer>> getAllStats(@PathVariable("id") String id){
+        Map<String, Integer> allStats = userService.getAllStats(id);
+        return ResponseEntity.ok(allStats);
+    }
+
 }

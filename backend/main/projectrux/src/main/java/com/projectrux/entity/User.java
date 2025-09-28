@@ -31,4 +31,12 @@ public class User {
 
     private UserStatus status;
 
+    private Integer projectsCreated;
+
+    private Integer projectsInvolved;
+
+    private Integer projectsCompleted;
+
+    private Integer projectsApplied;
+
 }

@@ -4,7 +4,16 @@ import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "./ui/badge";
 import { Separator } from "@/components/ui/seperator";
-import { Calendar, User, Briefcase, Code, Loader2, Clock, Check, X } from "lucide-react";
+import {
+  Calendar,
+  User,
+  Briefcase,
+  Code,
+  Loader2,
+  Clock,
+  Check,
+  X,
+} from "lucide-react";
 import { getAppliedPosts } from "@/services/api";
 import { getUserId } from "@/utils/jwt";
 
@@ -26,7 +35,11 @@ interface ApplicationPost {
   applicants: Applicant[];
 }
 
-export function ApplicationsList() {
+interface ApplicationsListProps {
+  onStatsRefresh?: () => void;
+}
+
+export function ApplicationsList({ onStatsRefresh }: ApplicationsListProps) {
   const [applications, setApplications] = useState<ApplicationPost[]>([]);
   const [loading, setLoading] = useState(true);
 

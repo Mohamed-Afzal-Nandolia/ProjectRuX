@@ -5,5 +5,6 @@ import lombok.Getter;
 @Getter
 public enum PostStatus {
     OPEN,
-    CLOSED
+    CLOSED,
+    COMPLETED
 }

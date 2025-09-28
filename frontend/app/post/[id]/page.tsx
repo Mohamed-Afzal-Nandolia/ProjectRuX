@@ -12,9 +12,9 @@ import { getPostById, getUserProfile } from "@/services/api";
 import { ApplyDialog } from "@/components/apply-dialog";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
-import { jwtDecode } from "jwt-decode";
+import { getUserId, getUsername, getUserEmail } from "@/utils/jwt";
+import { getUserStats } from "@/services/api";
 import type { Post } from "@/types/post";
-import type { JwtPayload } from "@/utils/jwt";
 
 // Helper to convert enum-like UPPER_CASE to Title Case
 const formatEnumLabel = (str: string) =>
@@ -40,38 +40,60 @@ export default function PostDetailsPage() {
   } | null>(null);
   const [hasApplied, setHasApplied] = useState(false);
 
+  // Function to refresh user stats after application
+  const refreshStats = async () => {
+    try {
+      const userId = getUserId();
+      if (userId) {
+        // Just trigger a stats refresh by calling the API
+        // This will update the cached stats in jwt utils
+        await getUserStats(userId);
+      }
+    } catch (error) {
+      console.error("Failed to refresh stats:", error);
+    }
+  };
+
   // Decode token and set current user
   useEffect(() => {
-    const token = localStorage.getItem("token");
-    if (!token) return;
+    const userId = getUserId();
+    const username = getUsername();
+    const email = getUserEmail();
 
-    try {
-      const decoded = jwtDecode<JwtPayload>(token);
-      if (decoded && decoded.exp * 1000 > Date.now()) {
-        setCurrentUser({
-          id: decoded.sub,
-          username: decoded.username,
-          email: decoded.email,
-        });
-      } else {
-        console.warn("Token expired");
-        localStorage.removeItem("token");
-      }
-    } catch (err) {
-      console.error("Failed to decode token", err);
+    if (userId && username && email) {
+      setCurrentUser({
+        id: userId,
+        username: username,
+        email: email,
+      });
     }
   }, []);
 
   useEffect(() => {
-    if (!postId) return;
+    if (!postId) {
+      setError("Invalid post ID");
+      setLoading(false);
+      return;
+    }
 
     const fetchPost = async () => {
       try {
         setLoading(true);
         setError(null);
 
+        console.log("Fetching post with ID:", postId);
+
+        // Check if backend URL is configured
+        if (!process.env.NEXT_PUBLIC_BACKEND_URL) {
+          console.warn(
+            "Backend URL not configured. Using default localhost:8080"
+          );
+        }
+
         // Fetch post details
         const postRes = await getPostById(postId, {});
+        console.log("Post API response:", postRes);
+
         const apiPost = postRes?.data;
 
         if (!apiPost) {
@@ -134,8 +156,31 @@ export default function PostDetailsPage() {
         }
       } catch (err: any) {
         console.error("Error fetching post:", err);
-        setError(err?.response?.data?.message || "Failed to load post");
-        toast.error("Failed to load post details");
+        console.error("Error details:", {
+          message: err.message,
+          response: err?.response?.data,
+          status: err?.response?.status,
+          url: err?.config?.url,
+        });
+
+        let errorMessage = "Failed to load post";
+
+        if (err?.response?.status === 404) {
+          errorMessage = "Post not found";
+        } else if (err?.response?.status === 401) {
+          errorMessage = "Authentication required";
+        } else if (
+          err?.code === "ECONNREFUSED" ||
+          err?.message?.includes("Network Error")
+        ) {
+          errorMessage =
+            "Cannot connect to server. Please check if the backend is running.";
+        } else if (err?.response?.data?.message) {
+          errorMessage = err.response.data.message;
+        }
+
+        setError(errorMessage);
+        toast.error(errorMessage);
       } finally {
         setLoading(false);
       }
@@ -338,6 +383,26 @@ export default function PostDetailsPage() {
                 };
                 refreshPost();
               }
+            }}
+            onApplicationSuccess={() => {
+              // Refresh stats after successful application
+              refreshStats();
+              // Also refresh post data to update application status
+              const refreshPost = async () => {
+                try {
+                  const postRes = await getPostById(postId, {});
+                  const apiPost = postRes?.data;
+                  if (apiPost?.applicants) {
+                    const hasUserApplied = apiPost.applicants.some(
+                      (applicant: any) => applicant.userId === currentUser?.id
+                    );
+                    setHasApplied(hasUserApplied);
+                  }
+                } catch (err) {
+                  console.error("Failed to refresh post data", err);
+                }
+              };
+              refreshPost();
             }}
           />
         )}

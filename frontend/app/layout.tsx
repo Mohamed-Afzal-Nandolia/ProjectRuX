@@ -16,8 +16,9 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Project RuX.",
-  description: "Project RUX. An initiative to solve development projects",
+  title: "RuX - Revolutionizing Developer Collaboration",
+  description:
+    "Connect, collaborate, and create amazing projects with RuX - the modern platform for developers.",
 };
 
 export default function RootLayout({
@@ -28,7 +29,7 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen`}
       >
         <ThemeProvider
           attribute="class"
@@ -37,9 +38,18 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           <AuthProvider>
-            {children}
-            {/* ✅ Add toaster here so you can use toast() anywhere */}
-            <Toaster richColors position="top-right" />
+            <div className="min-h-screen flex flex-col">{children}</div>
+            <Toaster
+              richColors
+              position="top-right"
+              toastOptions={{
+                style: {
+                  background: "oklch(var(--card))",
+                  border: "1px solid oklch(var(--border))",
+                  color: "oklch(var(--card-foreground))",
+                },
+              }}
+            />
           </AuthProvider>
         </ThemeProvider>
       </body>

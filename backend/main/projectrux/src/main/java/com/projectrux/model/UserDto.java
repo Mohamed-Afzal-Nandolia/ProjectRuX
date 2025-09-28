@@ -26,4 +26,12 @@ public class UserDto {
 
     private LocalDateTime createdAt;
 
+    private Integer projectsCreated;
+
+    private Integer projectsInvolved;
+
+    private Integer projectsCompleted;
+
+    private Integer projectsApplied;
+
 }

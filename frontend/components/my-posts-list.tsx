@@ -30,8 +30,7 @@ import {
   updateApplicantStatus,
 } from "@/services/api";
 import { toast } from "sonner";
-import { jwtDecode } from "jwt-decode";
-import type { JwtPayload } from "@/utils/jwt";
+import { getUserId, getUsername, getUserEmail } from "@/utils/jwt";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -70,7 +69,11 @@ interface UserProfileDetails {
   bio: string;
 }
 
-export function MyPostsList() {
+interface MyPostsListProps {
+  onStatsRefresh?: () => void;
+}
+
+export function MyPostsList({ onStatsRefresh }: MyPostsListProps) {
   const [userPosts, setUserPosts] = useState<Post[]>([]);
   const [editingPost, setEditingPost] = useState<Post | null>(null);
   const [loading, setLoading] = useState(true);
@@ -86,23 +89,16 @@ export function MyPostsList() {
 
   // Decode token and set user
   useEffect(() => {
-    const token = localStorage.getItem("token");
-    if (!token) return;
+    const userId = getUserId();
+    const username = getUsername();
+    const email = getUserEmail();
 
-    try {
-      const decoded = jwtDecode<JwtPayload>(token);
-      if (decoded && decoded.exp * 1000 > Date.now()) {
-        setUser({
-          id: decoded.sub,
-          username: decoded.username,
-          email: decoded.email,
-        });
-      } else {
-        console.warn("Token expired");
-        localStorage.removeItem("token");
-      }
-    } catch (err) {
-      console.error("Failed to decode token", err);
+    if (userId && username && email) {
+      setUser({
+        id: userId,
+        username: username,
+        email: email,
+      });
     }
   }, []);
 
@@ -179,6 +175,11 @@ export function MyPostsList() {
       setUserPosts((prevPosts) =>
         prevPosts.filter((post) => post.id !== postId)
       );
+
+      // Refresh platform stats after deleting a post
+      if (onStatsRefresh) {
+        onStatsRefresh();
+      }
     } catch (error) {
       toast.error("Error deleting post");
       console.error("[v0] Error deleting post:", error);
@@ -201,6 +202,11 @@ export function MyPostsList() {
       );
 
       toast.success(`Post status updated to ${newStatus}`);
+
+      // Refresh platform stats after changing post status
+      if (onStatsRefresh) {
+        onStatsRefresh();
+      }
     } catch (error) {
       console.error("Error updating post status:", error);
       toast.error(
@@ -298,6 +304,12 @@ Team RuX
       toast.success(
         `Applicant status updated to ${newStatus} and notification email sent`
       );
+
+      // Refresh user stats after updating applicant status
+      // This updates "Projects Involved" count for affected users
+      if (onStatsRefresh) {
+        onStatsRefresh();
+      }
     } catch (error) {
       console.error("Error updating applicant status:", error);
       toast.error(

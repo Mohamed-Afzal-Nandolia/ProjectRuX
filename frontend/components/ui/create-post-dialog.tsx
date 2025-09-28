@@ -36,12 +36,14 @@ type CreatePostDialogProps = {
   onOpenChange?: (open: boolean) => void;
   initialData?: any; // 👈 prefill form when editing
   onSubmitOverride?: (payload: any) => Promise<void>; // 👈 optional override
+  onPostCreated?: () => void; // 👈 callback after successful post creation
 };
 
 export function CreatePostDialog({
   children,
   open: openProp,
   onOpenChange,
+  onPostCreated,
 }: CreatePostDialogProps) {
   const router = useRouter();
   const [internalOpen, setInternalOpen] = React.useState(false);
@@ -135,7 +137,11 @@ export function CreatePostDialog({
         throw new Error(res?.data?.message || "Failed to create post");
       }
 
-      router.refresh();
+      // Call callback to refresh feed
+      if (onPostCreated) {
+        onPostCreated();
+      }
+
       setTitle("");
       setDescription("");
       setRolesRequired([]);

@@ -1,4 +1,5 @@
 import axios from "axios";
+import { clearTokenCache } from "@/utils/jwt";
 
 const api = axios.create({
   baseURL: process.env.NEXT_PUBLIC_BACKEND_URL,
@@ -18,6 +19,7 @@ api.interceptors.response.use(
   (err) => {
     if (err.response?.status === 401) {
       localStorage.removeItem("token");
+      clearTokenCache(); // Clear JWT cache when token is invalid
       if (typeof window !== "undefined") {
         window.location.href = "/login";
       }

@@ -48,3 +48,6 @@ export const updateApplicantStatus = (
     }
   );
 };
+
+export const getUserStats = (id: string) => api.get(`/user/get-stats/${id}`);
+export const getPlatformStats = () => api.get("/platform/stats");

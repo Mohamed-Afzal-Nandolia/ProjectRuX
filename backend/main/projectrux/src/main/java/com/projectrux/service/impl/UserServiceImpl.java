@@ -3,6 +3,7 @@ package com.projectrux.service.impl;
 
 import com.projectrux.entity.Otp;
 import com.projectrux.entity.PasswordResetToken;
+import com.projectrux.entity.PlatformStats;
 import com.projectrux.entity.User;
 import com.projectrux.enums.Skill;
 import com.projectrux.enums.UserStatus;
@@ -13,6 +14,7 @@ import com.projectrux.model.UserDto;
 import com.projectrux.model.UserProfileDto;
 import com.projectrux.repository.OtpRepository;
 import com.projectrux.repository.PasswordResetTokenRepository;
+import com.projectrux.repository.PlatformStatsRepository;
 import com.projectrux.repository.UserRepository;
 import com.projectrux.security.JwtUtil;
 import com.projectrux.service.MailService;
@@ -37,6 +39,9 @@ public class UserServiceImpl implements UserService {
 
     @Autowired
     OtpRepository otpRepository;
+
+    @Autowired
+    PlatformStatsRepository platformStatsRepository;
 
     @Autowired
     MailService mailService;
@@ -97,8 +102,23 @@ public class UserServiceImpl implements UserService {
         otpEntity.setExpiryTime(LocalDateTime.now().plusMinutes(5));
         otpRepository.save(otpEntity);
 
+        List<PlatformStats> all = platformStatsRepository.findAll();
+        PlatformStats platformStats = null;
+        if(all.isEmpty()){
+            platformStats = new PlatformStats(0, 0);
+            all.add(platformStats);
+        }
+        platformStats = all.get(0);
+        platformStats.setDevelopers(platformStats.getDevelopers() + 1);
+        platformStatsRepository.save(platformStats);
+
         mailService.sendMail(savedUser.getEmail(), "Verification OTP - ProjectRuX", otpEntity.getOtpCode());
         return Map.of("success", "OTP has been sent to your Email");
+    }
+
+    public static void createPlatformStatusRecord(){
+
+
     }
 
     public Map<String, String> getUserByEmailId(UserDto userDto) {
@@ -339,5 +359,17 @@ public class UserServiceImpl implements UserService {
     public List<UserDto> getAllUsers() {
         List<User> users = userRepository.findAll();
         return users.stream().map((user) -> modelMapper.map(user, UserDto.class)).collect(Collectors.toList());
+    }
+
+    @Override
+    public Map<String, Integer> getAllStats(String id) {
+        User user = findUser(id);
+
+        Map<String, Integer> allStats = new HashMap<>();
+        allStats.put("Projects Created", user.getProjectsCreated());
+        allStats.put("Projects Applied", user.getProjectsApplied());
+        allStats.put("Projects Completed", user.getProjectsCompleted());
+        allStats.put("Projects Involved", user.getProjectsInvolved());
+        return allStats;
     }
 }

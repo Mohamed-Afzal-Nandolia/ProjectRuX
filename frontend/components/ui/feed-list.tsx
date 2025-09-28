@@ -9,7 +9,10 @@ import { Separator } from "@/components/ui/seperator";
 import { getAllPost, getUserProfile } from "@/services/api";
 import { ApplyDialog } from "@/components/apply-dialog";
 import { Button } from "./button";
-import { toast } from "sonner"; // ✅ import sonner toast
+import { CreatePostDialog } from "./create-post-dialog";
+import { toast } from "sonner";
+import { Clock, Users, Star, TrendingUp } from "lucide-react";
+import { getUserId, getUsername, getUserEmail } from "@/utils/jwt";
 
 // Helper to convert enum-like UPPER_CASE to Title Case
 const formatEnumLabel = (str: string) =>
@@ -43,128 +46,316 @@ function mapPost(apiPost: any, username?: string): Post {
       apiPost.createdAt[5],
       Math.floor(apiPost.createdAt[6] / 1000000)
     ).toISOString(),
+    applicants: apiPost.applicants || [], // Include applicants data
   };
 }
 
-export function FeedList() {
+const getTimeAgo = (dateString: string) => {
+  const now = new Date();
+  const date = new Date(dateString);
+  const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
+
+  if (diffInSeconds < 60) return "Just now";
+  if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)}m ago`;
+  if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)}h ago`;
+  if (diffInSeconds < 604800)
+    return `${Math.floor(diffInSeconds / 86400)}d ago`;
+  return date.toLocaleDateString();
+};
+
+interface FeedListProps {
+  onStatsRefresh?: () => void;
+  onPostCreated?: () => void;
+}
+
+export function FeedList({ onStatsRefresh, onPostCreated }: FeedListProps) {
   const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [activePost, setActivePost] = useState<Post | null>(null);
+  const [currentUser, setCurrentUser] = useState<{
+    id: string;
+    username: string;
+    email: string;
+  } | null>(null);
+
+  // Function to fetch posts - extracted for reuse
+  const fetchPosts = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const res = await getAllPost({});
+      const apiPosts = res?.data || [];
+
+      // Fetch usernames for all posts
+      const postsWithNames = await Promise.all(
+        apiPosts.map(async (post: any) => {
+          let username = "Anonymous";
+          try {
+            if (post.createdBy) {
+              const userRes = await getUserProfile(post.createdBy, {});
+              username = userRes?.data?.username || "Anonymous";
+            }
+          } catch (err) {
+            console.error(`Failed to fetch username for ${post.id}`, err);
+          }
+          return mapPost(post, username);
+        })
+      );
+
+      // Filter to only show OPEN posts (hide CLOSED posts)
+      const openPosts = postsWithNames.filter(
+        (post) => post.status === "OPEN"
+      );
+      console.log(
+        `Showing ${openPosts.length} out of ${postsWithNames.length} posts (filtered out CLOSED posts)`
+      );
+
+      setPosts(openPosts);
+    } catch (err: any) {
+      console.error("Failed to fetch posts", err);
+      setError("Failed to load posts");
+      toast.error("Failed to load posts");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Decode token and set current user
+  useEffect(() => {
+    const userId = getUserId();
+    const username = getUsername();
+    const email = getUserEmail();
+
+    if (userId && username && email) {
+      setCurrentUser({
+        id: userId,
+        username: username,
+        email: email,
+      });
+    }
+  }, []);
+
+  // Helper function to check if user has applied
+  const hasUserApplied = (post: Post): boolean => {
+    if (!currentUser || !post.applicants) return false;
+    return post.applicants.some(
+      (applicant: any) => applicant.userId === currentUser.id
+    );
+  };
 
   useEffect(() => {
-    const fetchPosts = async () => {
-      try {
-        setLoading(true);
-        setError(null);
-        const res = await getAllPost({});
-        const apiPosts = res?.data || [];
-
-        // Fetch usernames for all posts
-        const postsWithNames = await Promise.all(
-          apiPosts.map(async (post: any) => {
-            let username = "Anonymous";
-            try {
-              if (post.createdBy) {
-                const userRes = await getUserProfile(post.createdBy, {});
-                username = userRes?.data?.username || "Anonymous";
-              }
-            } catch (err) {
-              console.error(`Failed to fetch username for ${post.id}`, err);
-            }
-            return mapPost(post, username);
-          })
-        );
-
-        // Filter to only show OPEN posts (hide CLOSED posts)
-        const openPosts = postsWithNames.filter(
-          (post) => post.status === "OPEN"
-        );
-        console.log(
-          `Showing ${openPosts.length} out of ${postsWithNames.length} posts (filtered out CLOSED posts)`
-        );
-
-        setPosts(openPosts);
-      } catch (err: any) {
-        console.error("Failed to fetch posts", err);
-        setError("Failed to load posts");
-        toast.error("Failed to load posts");
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchPosts();
   }, []);
 
-  return (
-    <div className="space-y-4" data-tour="center-feed">
-      {posts.map((post: Post) => (
-        <Card key={post.id}>
-          <CardHeader>
-            <div className="flex items-center gap-3">
-              <Avatar className="h-8 w-8">
-                <AvatarImage
-                  src={post.author.avatarUrl || undefined}
-                  alt={`${post.author.name} avatar`}
-                />
-                <AvatarFallback>
-                  {post.author.name.slice(0, 2).toUpperCase()}
-                </AvatarFallback>
-              </Avatar>
-              <div className="min-w-0">
-                <CardTitle className="text-base">{post.title}</CardTitle>
-                <p className="truncate text-xs text-muted-foreground">
-                  {"by "}
-                  {post.author.name}
-                  {" \u2022 "}
-                  {new Date(post.createdAt).toLocaleString()}
-                </p>
+  if (loading) {
+    return (
+      <div className="space-y-6" data-tour="center-feed">
+        {[...Array(3)].map((_, i) => (
+          <Card
+            key={i}
+            className="glass-card border-glass-border animate-pulse"
+          >
+            <CardContent className="p-6">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-10 h-10 bg-muted rounded-full"></div>
+                <div className="flex-1">
+                  <div className="w-32 h-4 bg-muted rounded mb-2"></div>
+                  <div className="w-48 h-3 bg-muted rounded"></div>
+                </div>
               </div>
-              {post.roles && post.roles.length > 0 && (
-                <Button
-                  size="sm"
-                  onClick={() => {
-                    setActivePost(post);
-                    toast.info(`Applying to ${post.title}... ✨`); // ✅ feedback
-                  }}
-                  className="shrink-0 ml-auto"
-                >
-                  Apply
-                </Button>
+              <div className="w-full h-20 bg-muted rounded mb-4"></div>
+              <div className="flex gap-2">
+                <div className="w-16 h-6 bg-muted rounded"></div>
+                <div className="w-20 h-6 bg-muted rounded"></div>
+                <div className="w-12 h-6 bg-muted rounded"></div>
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="text-center py-12">
+        <div className="glass-card border-glass-border p-8 rounded-2xl max-w-md mx-auto">
+          <div className="w-16 h-16 bg-red-500/10 rounded-full flex items-center justify-center mx-auto mb-4">
+            <Star className="w-8 h-8 text-red-500" />
+          </div>
+          <h3 className="text-xl font-semibold mb-2">Something went wrong</h3>
+          <p className="text-muted-foreground mb-4">{error}</p>
+          <Button
+            onClick={() => window.location.reload()}
+            className="gradient-primary hover-lift text-white border-0"
+          >
+            Try Again
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  if (posts.length === 0) {
+    return (
+      <div className="text-center py-12">
+        <div className="glass-card border-glass-border p-8 rounded-2xl max-w-md mx-auto">
+          <div className="w-16 h-16 bg-purple-500/10 rounded-full flex items-center justify-center mx-auto mb-4">
+            <TrendingUp className="w-8 h-8 text-purple-500" />
+          </div>
+          <h3 className="text-xl font-semibold mb-2">No Projects Yet</h3>
+          <p className="text-muted-foreground mb-4">
+            Be the first to share an amazing project with the community!
+          </p>
+          <CreatePostDialog onPostCreated={() => {
+            fetchPosts(); // Refresh the feed
+            if (onPostCreated) onPostCreated(); // Call parent callback
+          }}>
+            <Button className="gradient-primary hover-lift text-white border-0">
+              Create First Project
+            </Button>
+          </CreatePostDialog>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-6" data-tour="center-feed">
+      {posts.map((post: Post) => {
+        return (
+          <Card
+            key={post.id}
+            className="glass-card border-glass-border hover-lift group overflow-hidden"
+          >
+            <CardHeader className="pb-4">
+              <div className="flex items-start justify-between">
+                <div className="flex items-center gap-3 flex-1">
+                  <div className="relative">
+                    <Avatar className="h-11 w-11 border-2 border-purple-500/20">
+                      <AvatarImage
+                        src={post.author.avatarUrl || undefined}
+                        alt={`${post.author.name} avatar`}
+                      />
+                      <AvatarFallback className="bg-gradient-to-br from-purple-500 to-orange-500 text-white font-semibold">
+                        {post.author.name.slice(0, 2).toUpperCase()}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-background"></div>
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <CardTitle className="text-lg font-semibold mb-1 group-hover:text-primary transition-colors">
+                      {post.title}
+                    </CardTitle>
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <span className="font-medium text-foreground">
+                        by {post.author.name}
+                      </span>
+                      <span>•</span>
+                      <div className="flex items-center gap-1">
+                        <Clock className="w-3 h-3" />
+                        {getTimeAgo(post.createdAt)}
+                      </div>
+                      {post.roles && post.roles.length > 0 && (
+                        <>
+                          <span>•</span>
+                          <div className="flex items-center gap-1 text-orange-600">
+                            <Users className="w-3 h-3" />
+                            <span className="text-xs">
+                              {post.roles.length} roles
+                            </span>
+                          </div>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Apply Button in Header */}
+                {post.roles && post.roles.length > 0 && (
+                  <>
+                    {hasUserApplied(post) ? (
+                      <Badge
+                        variant="outline"
+                        className="bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950 dark:text-blue-300 dark:border-blue-800 ml-4"
+                      >
+                        Already Applied
+                      </Badge>
+                    ) : (
+                      <Button
+                        onClick={() => {
+                          setActivePost(post);
+                          toast.info(`Applying to ${post.title}... ✨`);
+                        }}
+                        className="gradient-primary hover-lift text-white border-0 h-9 px-6 text-sm font-medium ml-4"
+                      >
+                        Apply Now
+                      </Button>
+                    )}
+                  </>
+                )}
+              </div>
+            </CardHeader>
+
+            <CardContent className="space-y-4">
+              {post.description && (
+                <p className="text-sm leading-relaxed text-foreground/80">
+                  {post.description}
+                </p>
               )}
-            </div>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            {post.description ? (
-              <p className="text-sm leading-relaxed text-pretty">
-                {post.description}
-              </p>
-            ) : null}
-            <div className="flex flex-wrap items-center gap-2">
-              {post.techstack?.map((t) => (
-                <Badge key={t} variant="outline">
-                  {t}
-                </Badge>
-              ))}
-              {post.roles && post.roles.length > 0 && (
-                <Separator orientation="vertical" className="mx-1 h-4" />
-              )}
-              {post.roles?.map((r) => (
-                <Badge key={r}>{r}</Badge>
-              ))}
-              {post.tags.length > 0 && (
-                <Separator orientation="vertical" className="mx-1 h-4" />
-              )}
-              {post.tags.map((tag) => (
-                <Badge key={tag} variant="secondary">
-                  #{tag}
-                </Badge>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      ))}
+
+              {/* Tags and Tech Stack */}
+              <div className="flex flex-wrap items-center gap-2">
+                {post.techstack?.map((tech, index) => (
+                  <Badge
+                    key={tech}
+                    variant="outline"
+                    className={`border-purple-500/30 text-purple-600 hover:bg-purple-500/10 transition-colors ${
+                      index % 2 === 0
+                        ? "hover:border-purple-500/50"
+                        : "hover:border-orange-500/50 hover:text-orange-600"
+                    }`}
+                  >
+                    {tech}
+                  </Badge>
+                ))}
+
+                {post.roles && post.roles.length > 0 && (
+                  <Separator orientation="vertical" className="mx-1 h-4" />
+                )}
+
+                {post.roles?.map((role, index) => (
+                  <Badge
+                    key={role}
+                    className={`${
+                      index % 2 === 0
+                        ? "bg-purple-500/10 text-purple-600 border-purple-500/20"
+                        : "bg-orange-500/10 text-orange-600 border-orange-500/20"
+                    } hover:scale-105 transition-all`}
+                  >
+                    {role}
+                  </Badge>
+                ))}
+
+                {post.tags.length > 0 && (
+                  <Separator orientation="vertical" className="mx-1 h-4" />
+                )}
+
+                {post.tags.map((tag) => (
+                  <Badge
+                    key={tag}
+                    variant="secondary"
+                    className="hover:bg-muted/80 transition-colors"
+                  >
+                    #{tag}
+                  </Badge>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        );
+      })}
 
       {/* Single ApplyDialog controlled by activePost */}
       {activePost && (
@@ -172,8 +363,21 @@ export function FeedList() {
           post={activePost}
           open={!!activePost}
           onOpenChange={(open) => {
-            if (!open) setActivePost(null);
-            else toast.success("Application submitted ✅"); // ✅ success toast
+            if (!open) {
+              setActivePost(null);
+              // Refresh stats when application dialog closes
+              if (onStatsRefresh) {
+                onStatsRefresh();
+              }
+            }
+          }}
+          onApplicationSuccess={() => {
+            // Refresh stats
+            if (onStatsRefresh) {
+              onStatsRefresh();
+            }
+            // Refresh posts to update application status
+            fetchPosts();
           }}
         />
       )}

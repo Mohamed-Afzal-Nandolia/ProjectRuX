@@ -18,17 +18,22 @@ import { FilterableTagsInput } from "./filterable-tags-input";
 import type { Post } from "@/types/post";
 import { getAllSkills, getAllRoles, applyForPosition } from "@/services/api";
 import { Loader2 } from "lucide-react";
-import { JwtPayload } from "@/utils/jwt";
-import { jwtDecode } from "jwt-decode";
+import { getUserId } from "@/utils/jwt";
 import { toast } from "sonner";
 
 interface ApplyDialogProps {
   post: Post;
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  onApplicationSuccess?: () => void; // Callback for when application is successful
 }
 
-export function ApplyDialog({ post, open, onOpenChange }: ApplyDialogProps) {
+export function ApplyDialog({
+  post,
+  open,
+  onOpenChange,
+  onApplicationSuccess,
+}: ApplyDialogProps) {
   const [selectedRole, setSelectedRole] = useState("");
   const [skills, setSkills] = useState<string[]>([]);
   const [shortPitch, setShortPitch] = useState("");
@@ -39,19 +44,9 @@ export function ApplyDialog({ post, open, onOpenChange }: ApplyDialogProps) {
   const [userId, setUserId] = useState("");
 
   useEffect(() => {
-    try {
-      const token = localStorage.getItem("token");
-      if (!token) return;
-
-      const decoded = jwtDecode<JwtPayload>(token);
-      if (decoded && decoded.exp * 1000 > Date.now()) {
-        setUserId(decoded.sub);
-      } else {
-        console.warn("Token expired");
-        localStorage.removeItem("token");
-      }
-    } catch (err) {
-      console.error("Failed to decode token", err);
+    const userIdFromToken = getUserId();
+    if (userIdFromToken) {
+      setUserId(userIdFromToken);
     }
   }, []);
 
@@ -100,6 +95,11 @@ export function ApplyDialog({ post, open, onOpenChange }: ApplyDialogProps) {
       setShortPitch("");
 
       toast.success("Application submitted successfully!");
+
+      // Trigger stats refresh callback
+      if (onApplicationSuccess) {
+        onApplicationSuccess();
+      }
     } catch (error) {
       console.error("Failed to submit application:", error);
       toast.error("Failed to submit application. Please try again.");
@@ -177,12 +177,12 @@ export function ApplyDialog({ post, open, onOpenChange }: ApplyDialogProps) {
                     {post.description}
                   </p>
                 )}
-                {post.techstack?.length > 0 && (
+                {post.techstack && post.techstack.length > 0 && (
                   <div className="flex flex-wrap gap-2 mt-2">
                     <span className="text-xs text-muted-foreground">
                       Tech Stack:
                     </span>
-                    {post.techstack.map((tech) => (
+                    {post.techstack?.map((tech) => (
                       <Badge key={tech} variant="outline" className="text-xs">
                         {tech}
                       </Badge>

@@ -2,9 +2,7 @@ package com.projectrux.service.impl;
 
 
 import com.fasterxml.jackson.core.type.TypeReference;
-import com.projectrux.entity.Applicant;
-import com.projectrux.entity.Post;
-import com.projectrux.entity.RoleRequirement;
+import com.projectrux.entity.*;
 import com.projectrux.enums.ApplicantStatus;
 import com.projectrux.enums.PostStatus;
 import com.projectrux.enums.Roles;
@@ -14,7 +12,9 @@ import com.projectrux.exception.ResourceNotFoundException;
 import com.projectrux.model.ApplicantStatusUpdateRequest;
 import com.projectrux.model.MailDto;
 import com.projectrux.model.PostDto;
+import com.projectrux.repository.PlatformStatsRepository;
 import com.projectrux.repository.PostRepository;
+import com.projectrux.repository.UserRepository;
 import com.projectrux.service.MailService;
 import com.projectrux.service.PostService;
 import com.projectrux.service.RedisService;
@@ -28,6 +28,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -41,6 +42,12 @@ public class PostServiceImpl implements PostService {
     private PostRepository postRepository;
 
     @Autowired
+    private UserRepository userRepository;
+
+    @Autowired
+    private PlatformStatsRepository platformStatsRepository;
+
+    @Autowired
     private RedisService redisService;
 
     @Autowired
@@ -48,11 +55,26 @@ public class PostServiceImpl implements PostService {
 
     @Override
     public PostDto createPost(PostDto postDto) {
+
+        User user = userRepository.findById(postDto.getCreatedBy()).orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + postDto.getCreatedBy()));
+        user.setProjectsCreated(user.getProjectsCreated() == null ? 1 : user.getProjectsCreated() + 1);
         Post post = mapper.map(postDto, Post.class);
         post.setCreatedAt(LocalDateTime.now());
         post.setUpdatedAt(LocalDateTime.now());
         post.setStatus(PostStatus.OPEN);
         Post save = postRepository.save(post);
+        userRepository.save(user);
+
+        List<PlatformStats> all = platformStatsRepository.findAll();
+        PlatformStats platformStats = null;
+        if(all.isEmpty()){
+            platformStats = new PlatformStats(0, 0);
+            all.add(platformStats);
+        }
+        platformStats = all.get(0);
+        platformStats.setActiveProjects(platformStats.getActiveProjects() + 1);
+        platformStatsRepository.save(platformStats);
+
         return mapper.map(save, PostDto.class);
     }
 
@@ -175,6 +197,8 @@ public class PostServiceImpl implements PostService {
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new ResourceNotFoundException("Post not found with id: " + postId));
 
+        User user = userRepository.findById(newApplicant.getUserId()).orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + newApplicant.getUserId()));
+
         List<Applicant> applicants = post.getApplicants();
         boolean alreadyApplied = false;
 
@@ -194,9 +218,11 @@ public class PostServiceImpl implements PostService {
         else{
             post.getApplicants().add(newApplicant);
         }
+        user.setProjectsApplied(user.getProjectsApplied() == null ? 1 : user.getProjectsApplied() + 1);
         post.setApplied(post.getApplied() + 1);
         post.setUpdatedAt(LocalDateTime.now());
         Post updatedPost = postRepository.save(post);
+        userRepository.save(user);
 
         return mapper.map(updatedPost, PostDto.class);
     }
@@ -224,11 +250,19 @@ public class PostServiceImpl implements PostService {
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new ResourceNotFoundException("Post not found with id: " + postId));
 
+        User user = userRepository.findById(applicantId).orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + applicantId));
+
         boolean updated = false;
         for (Applicant applicant : post.getApplicants()) {
             if (applicant.getUserId().equals(applicantId)) {
                 mailService.sendMail(applicantStatus.getMailDto().getReceiverMail(), applicantStatus.getMailDto().getSubject(), applicantStatus.getMailDto().getBody());
                 applicant.setStatus(applicantStatus.getApplicantStatus().getStatus());
+                if(applicantStatus.getApplicantStatus().getStatus() == ApplicantStatus.ACCEPTED){
+                    user.setProjectsInvolved(user.getProjectsInvolved() == null ? 1 : user.getProjectsInvolved() + 1);
+                }
+                else{
+                    user.setProjectsInvolved(user.getProjectsInvolved() == null ? 1 : user.getProjectsInvolved() - 1);
+                }
                 updated = true;
                 break;
             }
@@ -238,6 +272,7 @@ public class PostServiceImpl implements PostService {
             throw new RuntimeException("Applicant not found in post");
         }
         Post saved = postRepository.save(post);
+        userRepository.save(user);
         return Map.of("Post Updated Successfully", applicantStatus.getApplicantStatus());
     }
 
@@ -246,9 +281,40 @@ public class PostServiceImpl implements PostService {
         Post post = postRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Post not found"));
 
-        post.setStatus(postStatus);
+        List<PlatformStats> all = platformStatsRepository.findAll();
+        PlatformStats platformStats = null;
+        if(all.isEmpty()){
+            platformStats = new PlatformStats(0, 0);
+            all.add(platformStats);
+        }
+        platformStats = all.get(0);
 
+        if(postStatus == PostStatus.COMPLETED){
+            List<Applicant> applicants = post.getApplicants();
+            for(Applicant applicant : applicants){
+                if(applicant.getStatus() == ApplicantStatus.ACCEPTED){
+                    String userId = applicant.getUserId();
+                    Optional<User> userById = userRepository.findById(userId);
+                    User user = userById.get();
+                    user.setProjectsCompleted(user.getProjectsCompleted() == null ? 1 : user.getProjectsCompleted() + 1);
+                    userRepository.save(user);
+                }
+            }
+            if(post.getStatus() == PostStatus.OPEN){
+                platformStats.setActiveProjects(platformStats.getActiveProjects() - 1);
+            }
+            platformStatsRepository.save(platformStats);
+            post.setStatus(postStatus);
+            postRepository.save(post);
+            return Map.of("Status updated successfully", postStatus);
+        }
+
+        platformStats.setActiveProjects(postStatus == PostStatus.CLOSED ? platformStats.getActiveProjects() - 1 : platformStats.getActiveProjects() + 1);
+        platformStatsRepository.save(platformStats);
+
+        post.setStatus(postStatus);
         Post saved = postRepository.save(post);
+
         return Map.of("Status updated successfully", postStatus);
     }
 }

@@ -22,9 +22,8 @@ import {
   FilterableTagsInput,
   formatEnumLabel,
 } from "@/components/filterable-tags-input";
-import { jwtDecode } from "jwt-decode";
+import { getUserId, getUsername, getUserEmail } from "@/utils/jwt";
 import { cn } from "@/lib/utils";
-import { getUserId, JwtPayload } from "@/utils/jwt";
 import type { Post } from "@/types/post";
 import { toast } from "sonner";
 import {
@@ -61,23 +60,16 @@ export default function MyProfilePage() {
 
   // Decode JWT and set user info
   useEffect(() => {
-    const token = localStorage.getItem("token");
-    if (!token) return;
+    const userId = getUserId();
+    const username = getUsername();
+    const email = getUserEmail();
 
-    try {
-      const decoded = jwtDecode<JwtPayload>(token);
-      if (decoded && decoded.exp * 1000 > Date.now()) {
-        setUser({
-          id: decoded.sub,
-          username: decoded.username,
-          email: decoded.email,
-        });
-      } else {
-        console.warn("Token expired");
-        localStorage.removeItem("token");
-      }
-    } catch (err) {
-      console.error("Failed to decode token", err);
+    if (userId && username && email) {
+      setUser({
+        id: userId,
+        username: username,
+        email: email,
+      });
     }
   }, []);
 

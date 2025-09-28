@@ -40,4 +40,5 @@ public interface UserService {
 
     public List<UserDto> getAllUsers();
 
+    public Map<String, Integer> getAllStats(String id);
 }
