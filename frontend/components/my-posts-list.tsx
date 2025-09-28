@@ -9,6 +9,7 @@ import {
   Loader2,
   Trash2,
   User,
+  Users,
   Code,
   MessageSquare,
   Lock,
@@ -19,6 +20,7 @@ import {
   Eye,
   Mail,
   FileText,
+  Trophy,
 } from "lucide-react";
 import type { Post } from "@/types/post";
 import { EditPostDialog } from "./edit-post-dialog";
@@ -215,6 +217,33 @@ export function MyPostsList({ onStatsRefresh }: MyPostsListProps) {
     }
   };
 
+  const handleMarkAsComplete = async (postId: string) => {
+    try {
+      await updatePostStatus(postId, "COMPLETED");
+
+      // Update the local state
+      setUserPosts((prevPosts) =>
+        prevPosts.map((post) =>
+          post.id === postId ? { ...post, status: "COMPLETED" } : post
+        )
+      );
+
+      toast.success(
+        "Project marked as complete! All accepted applicants' completion count has been updated."
+      );
+
+      // Refresh all stats after marking project as complete
+      if (onStatsRefresh) {
+        onStatsRefresh();
+      }
+    } catch (error) {
+      console.error("Error marking project as complete:", error);
+      toast.error(
+        "Error marking project as complete. Please check your backend connection."
+      );
+    }
+  };
+
   const handleUpdateApplicantStatus = async (
     postId: string,
     applicantUserId: string,
@@ -380,81 +409,224 @@ Team RuX
         <div className="space-y-4">
           {userPosts.map((post) => (
             <Card key={post.id}>
-              <CardContent>
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-3 mb-2">
-                      <h3 className="font-semibold text-lg">{post.title}</h3>
-                      <Badge
-                        variant={
-                          post.status === "OPEN" ? "default" : "secondary"
-                        }
-                        className={
-                          post.status === "OPEN"
-                            ? "bg-green-500 hover:bg-green-600"
-                            : "bg-gray-500 hover:bg-gray-600"
-                        }
-                      >
-                        {post.status || "OPEN"}
-                      </Badge>
-                    </div>
-                    <p className="mt-2 text-sm text-muted-foreground">
-                      {post.description}
-                    </p>
+              <CardContent className="p-6">
+                {/* Header with Title, Status Badge, and Action Buttons */}
+                <div className="flex items-start justify-between mb-4">
+                  <div className="flex items-center gap-3">
+                    <h3 className="font-semibold text-lg">{post.title}</h3>
+                    <Badge
+                      variant={
+                        post.status === "OPEN"
+                          ? "default"
+                          : post.status === "COMPLETED"
+                          ? "default"
+                          : "secondary"
+                      }
+                      className={
+                        post.status === "OPEN"
+                          ? "bg-green-500 hover:bg-green-600 text-white"
+                          : post.status === "COMPLETED"
+                          ? "bg-gradient-to-r from-purple-500 to-pink-500 text-white border-0"
+                          : "bg-gray-500 hover:bg-gray-600 text-white"
+                      }
+                    >
+                      {post.status === "COMPLETED" && (
+                        <Trophy className="h-3 w-3 mr-1" />
+                      )}
+                      {post.status === "CLOSED" && (
+                        <Lock className="h-3 w-3 mr-1" />
+                      )}
+                      {post.status || "OPEN"}
+                    </Badge>
+                  </div>
 
-                    {/* Applicants */}
-                    {post.applicants && post.applicants.length > 0 && (
-                      <div className="mt-4 space-y-3">
-                        <p className="font-medium text-sm">Applicants:</p>
-                        {post.applicants.map((app, idx) => (
-                          <div
-                            key={idx}
-                            className="border rounded-xl p-4 bg-muted/30 space-y-3 shadow-sm"
+                  {/* Action Buttons */}
+                  <div className="flex items-center gap-2">
+                    {/* Mark as Complete Button - only show for OPEN posts with accepted applicants */}
+                    {post.status === "OPEN" &&
+                      post.applicants?.some(
+                        (app) => app.status === "ACCEPTED"
+                      ) && (
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button
+                              variant="default"
+                              size="sm"
+                              className="h-8 px-3 bg-gradient-to-r from-green-500 to-emerald-500 text-white border-0 hover:from-green-600 hover:to-emerald-600"
+                              title="Mark Project as Complete"
+                            >
+                              <Trophy className="h-4 w-4 mr-1" />
+                              Complete
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>
+                                Mark Project as Complete?
+                              </AlertDialogTitle>
+                              <AlertDialogDescription>
+                                This will mark the project as completed and
+                                increment the "Projects Completed" count for all
+                                accepted applicants. This action cannot be
+                                undone.
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Cancel</AlertDialogCancel>
+                              <AlertDialogAction
+                                className="bg-gradient-to-r from-green-500 to-emerald-500 text-white hover:from-green-600 hover:to-emerald-600"
+                                onClick={() => handleMarkAsComplete(post.id)}
+                              >
+                                <Trophy className="h-4 w-4 mr-2" />
+                                Mark as Complete
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
+                      )}
+
+                    {/* Toggle Status Button */}
+                    {post.status !== "COMPLETED" && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() =>
+                          handleTogglePostStatus(post.id, post.status || "OPEN")
+                        }
+                        className="h-8 w-8 p-0"
+                        title={`${
+                          post.status === "OPEN" ? "Close Post" : "Open Post"
+                        }`}
+                      >
+                        {post.status === "OPEN" ? (
+                          <Unlock className="h-4 w-4 text-green-500" />
+                        ) : (
+                          <Lock className="h-4 w-4 text-red-500" />
+                        )}
+                      </Button>
+                    )}
+
+                    {/* Edit Button */}
+                    {post.status !== "COMPLETED" && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setEditingPost(post)}
+                        className="h-8 w-8 p-0"
+                        title="Edit Post"
+                      >
+                        <Edit className="h-4 w-4" />
+                      </Button>
+                    )}
+
+                    {/* Delete Button */}
+                    {post.status !== "COMPLETED" && (
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-8 w-8 p-0 text-destructive hover:text-destructive"
+                            title="Delete Post"
                           >
-                            {/* Username and Status */}
-                            <div className="flex items-center justify-between">
-                              <div className="flex items-center gap-2">
-                                <User className="h-4 w-4 text-muted-foreground" />
-                                <span className="text-sm font-semibold">
-                                  {app.username}
-                                </span>
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  onClick={() =>
-                                    handleViewUserProfile(app.userId)
-                                  }
-                                  className="h-6 w-6 p-0 ml-2"
-                                  title="View Profile"
-                                >
-                                  <Eye className="h-3 w-3 text-blue-600" />
-                                </Button>
-                              </div>
-                              <div className="flex items-center gap-2">
-                                <Badge
-                                  className={
-                                    app.status === "PENDING"
-                                      ? "bg-yellow-500 hover:bg-yellow-600 text-white"
-                                      : app.status === "ACCEPTED"
-                                      ? "bg-green-500 hover:bg-green-600 text-white"
-                                      : "bg-red-500 hover:bg-red-600 text-white border-red-500"
-                                  }
-                                >
-                                  {app.status === "PENDING" && (
-                                    <Clock className="h-3 w-3 mr-1" />
-                                  )}
-                                  {app.status === "ACCEPTED" && (
-                                    <Check className="h-3 w-3 mr-1" />
-                                  )}
-                                  {app.status === "REJECTED" && (
-                                    <X className="h-3 w-3 mr-1" />
-                                  )}
-                                  {app.status || "PENDING"}
-                                </Badge>
-                                {/* Status Action Buttons */}
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                            <AlertDialogDescription>
+                              This action cannot be undone. The post will be
+                              permanently deleted.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                            <AlertDialogAction
+                              className="bg-destructive text-white hover:bg-destructive/90"
+                              onClick={() => handleDeletePost(post.id)}
+                            >
+                              Delete
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
+                    )}
+                  </div>
+                </div>
+
+                {/* Description */}
+                <p className="text-sm text-muted-foreground mb-4">
+                  {post.description}
+                </p>
+
+                {/* Applicants Section - Full Width */}
+                {post.applicants && post.applicants.length > 0 && (
+                  <div className="space-y-4">
+                    <h4 className="font-medium text-sm flex items-center gap-2">
+                      <Users className="h-4 w-4" />
+                      Applicants ({post.applicants.length})
+                    </h4>
+                    <div className="space-y-4">
+                      {post.applicants.map((app, idx) => (
+                        <div
+                          key={idx}
+                          className="w-full border rounded-xl p-6 bg-muted/30 shadow-sm space-y-4"
+                        >
+                          {/* Header Row: Username and View Profile */}
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                              <User className="h-4 w-4 text-muted-foreground" />
+                              <span className="text-sm font-semibold">
+                                {app.username}
+                              </span>
+                            </div>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleViewUserProfile(app.userId)}
+                              className="h-8 px-3 text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                              title="View Profile"
+                            >
+                              <Eye className="h-4 w-4 mr-1" />
+                              View Profile
+                            </Button>
+                          </div>
+
+                          {/* Status and Action Buttons Row */}
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                              <span className="text-xs text-muted-foreground">
+                                Status:
+                              </span>
+                              <Badge
+                                className={
+                                  app.status === "PENDING"
+                                    ? "bg-yellow-500 hover:bg-yellow-600 text-white"
+                                    : app.status === "ACCEPTED"
+                                    ? "bg-green-600 hover:bg-green-700 text-white"
+                                    : "bg-red-500 hover:bg-red-600 text-white border-red-500"
+                                }
+                              >
+                                {app.status === "PENDING" && (
+                                  <Clock className="h-3 w-3 mr-1" />
+                                )}
+                                {app.status === "ACCEPTED" && (
+                                  <Check className="h-3 w-3 mr-1" />
+                                )}
+                                {app.status === "REJECTED" && (
+                                  <X className="h-3 w-3 mr-1" />
+                                )}
+                                {app.status || "PENDING"}
+                              </Badge>
+                            </div>
+
+                            {/* Action Buttons - only show for non-completed projects */}
+                            {post.status !== "COMPLETED" && (
+                              <div className="flex gap-2">
                                 {app.status !== "ACCEPTED" && (
                                   <Button
-                                    variant="ghost"
+                                    variant="outline"
                                     size="sm"
                                     onClick={() =>
                                       handleUpdateApplicantStatus(
@@ -463,15 +635,16 @@ Team RuX
                                         "ACCEPTED"
                                       )
                                     }
-                                    className="h-6 w-6 p-0"
+                                    className="h-8 px-3 text-green-600 border-green-300 hover:bg-green-50 hover:border-green-400"
                                     title="Accept Applicant"
                                   >
-                                    <Check className="h-4 w-4 text-green-600" />
+                                    <Check className="h-4 w-4 mr-1" />
+                                    Accept
                                   </Button>
                                 )}
                                 {app.status !== "REJECTED" && (
                                   <Button
-                                    variant="ghost"
+                                    variant="outline"
                                     size="sm"
                                     onClick={() =>
                                       handleUpdateApplicantStatus(
@@ -480,139 +653,74 @@ Team RuX
                                         "REJECTED"
                                       )
                                     }
-                                    className="h-6 w-6 p-0"
+                                    className="h-8 px-3 text-red-600 border-red-300 hover:bg-red-50 hover:border-red-400"
                                     title="Reject Applicant"
                                   >
-                                    <X className="h-4 w-4 text-red-500" />
+                                    <X className="h-4 w-4 mr-1" />
+                                    Reject
                                   </Button>
                                 )}
                               </div>
-                            </div>
+                            )}
+                          </div>
 
-                            {/* Role Applied */}
-                            <div className="flex items-center gap-2">
-                              <Badge
-                                variant="outline"
-                                className="px-2 py-1 text-xs"
-                              >
-                                {app.roleApplied}
-                              </Badge>
-                              <span className="text-xs text-muted-foreground">
-                                applied role
-                              </span>
-                            </div>
+                          {/* Applied Role */}
+                          <div className="flex items-center gap-2">
+                            <span className="text-xs text-muted-foreground">
+                              Applied for:
+                            </span>
+                            <Badge
+                              variant="outline"
+                              className="px-2 py-1 text-xs"
+                            >
+                              {app.roleApplied}
+                            </Badge>
+                          </div>
 
-                            {/* Divider before skills */}
-                            <div className="border-t pt-3" />
-
-                            {/* Skills */}
-                            {app.skills?.length > 0 && (
-                              <div className="space-y-1">
-                                <div className="flex items-center gap-2">
-                                  <Code className="h-4 w-4 text-muted-foreground" />
-                                  <span className="text-sm font-medium">
-                                    Skills:
-                                  </span>
-                                </div>
-                                <div className="flex flex-wrap gap-2 mt-1">
-                                  {app.skills.map((skill, i) => (
-                                    <Badge
-                                      key={i}
-                                      variant="secondary"
-                                      className="rounded-full px-3 py-1 text-xs"
-                                    >
-                                      {skill}
-                                    </Badge>
-                                  ))}
-                                </div>
+                          {/* Skills */}
+                          {app.skills?.length > 0 && (
+                            <div className="space-y-2">
+                              <div className="flex items-center gap-2">
+                                <Code className="h-4 w-4 text-muted-foreground" />
+                                <span className="text-sm font-medium">
+                                  Skills:
+                                </span>
                               </div>
-                            )}
+                              <div className="flex flex-wrap gap-2">
+                                {app.skills.map((skill, i) => (
+                                  <Badge
+                                    key={i}
+                                    variant="secondary"
+                                    className="text-xs px-2 py-1"
+                                  >
+                                    {skill}
+                                  </Badge>
+                                ))}
+                              </div>
+                            </div>
+                          )}
 
-                            {/* Divider before pitch */}
-                            {app.applicantPitch && (
-                              <div className="border-t pt-3" />
-                            )}
-
-                            {/* Pitch */}
-                            {app.applicantPitch && (
-                              <div>
-                                <div className="flex items-center gap-2 mb-1">
-                                  <MessageSquare className="h-4 w-4 text-muted-foreground" />
-                                  <span className="text-sm font-medium">
-                                    Pitch:
-                                  </span>
-                                </div>
-                                <p className="text-sm text-muted-foreground bg-background/60 p-3 rounded-md">
+                          {/* Pitch */}
+                          {app.applicantPitch && (
+                            <div className="space-y-2">
+                              <div className="flex items-center gap-2">
+                                <MessageSquare className="h-4 w-4 text-muted-foreground" />
+                                <span className="text-sm font-medium">
+                                  Pitch:
+                                </span>
+                              </div>
+                              <div className="bg-background/60 p-3 rounded-lg border">
+                                <p className="text-sm text-muted-foreground leading-relaxed">
                                   {app.applicantPitch}
                                 </p>
                               </div>
-                            )}
-                          </div>
-                        ))}
-                      </div>
-                    )}
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
                   </div>
-
-                  {/* Actions */}
-                  <div className="flex gap-2 ml-4">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() =>
-                        handleTogglePostStatus(post.id, post.status || "OPEN")
-                      }
-                      className="h-8 w-8 p-0"
-                      title={`${
-                        post.status === "OPEN" ? "Close Post" : "Open Post"
-                      }`}
-                    >
-                      {post.status === "OPEN" ? (
-                        <Unlock className="h-4 w-4 text-green-500" />
-                      ) : (
-                        <Lock className="h-4 w-4 text-red-500" />
-                      )}
-                    </Button>
-
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => setEditingPost(post)}
-                      className="h-8 w-8 p-0"
-                    >
-                      <Edit className="h-4 w-4" />
-                    </Button>
-
-                    <AlertDialog>
-                      <AlertDialogTrigger asChild>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="h-8 w-8 p-0 text-destructive hover:text-destructive"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </AlertDialogTrigger>
-                      <AlertDialogContent>
-                        <AlertDialogHeader>
-                          <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-                          <AlertDialogDescription>
-                            This action cannot be undone. The post will be
-                            permanently deleted.
-                          </AlertDialogDescription>
-                        </AlertDialogHeader>
-                        <AlertDialogFooter>
-                          <AlertDialogCancel>Cancel</AlertDialogCancel>
-                          <AlertDialogAction
-                            className="bg-destructive text-white hover:bg-destructive/90"
-                            onClick={() => handleDeletePost(post.id)}
-                          >
-                            Delete
-                          </AlertDialogAction>
-                        </AlertDialogFooter>
-                      </AlertDialogContent>
-                    </AlertDialog>
-                  </div>
-                </div>
+                )}
               </CardContent>
             </Card>
           ))}
