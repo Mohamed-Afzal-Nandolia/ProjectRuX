@@ -133,19 +133,35 @@ public class PostServiceImpl implements PostService {
     }
 
     @Override
-    public List<PostDto> getAllPosts() {
+    public List<PostDto> getAllPosts(Roles role, Skill skill) {
 //        List<PostDto> cachedPosts = redisService.get("getAllPosts", new TypeReference<List<PostDto>>() {}, 900L);
 //        if (cachedPosts != null) {
 //            return cachedPosts;
 //        }
 
-        List<Post> allPosts = postRepository.findAll();
-        List<PostDto> postDtos = allPosts.stream()
+//        List<Post> allPosts = postRepository.findAll();
+//        List<PostDto> postDtos = allPosts.stream()
+//                .map(post -> mapper.map(post, PostDto.class))
+//                .collect(Collectors.toList());
+//
+////        redisService.set("getAllPosts", postDtos, 900L);
+//        return postDtos;
+
+        List<Post> posts;
+
+        if (role == null && skill == null) {
+            posts = postRepository.findAll();
+        } else if (role != null && skill == null) {
+            posts = postRepository.findByRole(role);
+        } else if (role == null && skill != null) {
+            posts = postRepository.findBySkill(skill);
+        } else {
+            posts = postRepository.findByRoleAndSkill(role, skill);
+        }
+
+        return posts.stream()
                 .map(post -> mapper.map(post, PostDto.class))
                 .collect(Collectors.toList());
-
-//        redisService.set("getAllPosts", postDtos, 900L);
-        return postDtos;
     }
 
     @Override

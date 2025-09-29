@@ -24,7 +24,7 @@ public interface PostService {
 
     public List<PostDto> getPostsByApplicantUserId(String userId);
 
-    public List<PostDto> getAllPosts();
+    public List<PostDto> getAllPosts(Roles role, Skill skill);
 
     public void deletePost(String id);
 

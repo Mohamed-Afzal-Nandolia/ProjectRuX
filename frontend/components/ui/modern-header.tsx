@@ -11,6 +11,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { SearchDialog } from "@/components/ui/search-dialog";
 import {
   Bell,
   Search,
@@ -25,13 +26,19 @@ import { toast } from "sonner";
 interface ModernHeaderProps {
   isAuthenticated?: boolean;
   userName?: string;
+  userEmail?: string;
   userAvatar?: string;
+  onSearch?: (filters: { roles: string[]; skills: string[] }) => void;
+  currentFilters?: { roles: string[]; skills: string[] };
 }
 
 export function ModernHeader({
   isAuthenticated = false,
   userName = "User",
+  userEmail = "user@example.com",
   userAvatar,
+  onSearch,
+  currentFilters,
 }: ModernHeaderProps) {
   const router = useRouter();
   const [isScrolled, setIsScrolled] = useState(false);
@@ -43,6 +50,19 @@ export function ModernHeader({
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
+
+  const handleSearch = (filters: { roles: string[]; skills: string[] }) => {
+    console.log("Search filters:", filters);
+    // Call the parent's onSearch if provided
+    if (onSearch) {
+      onSearch(filters);
+    } else {
+      // Fallback for when no parent handler is provided
+      toast.success(
+        `Searching for ${filters.roles.length} roles and ${filters.skills.length} skills`
+      );
+    }
+  };
 
   const handleLogout = () => {
     localStorage.removeItem("token");
@@ -82,14 +102,16 @@ export function ModernHeader({
 
         {/* Search Bar (Desktop) */}
         <div className="hidden md:flex flex-1 max-w-md mx-8">
-          <div className="relative w-full">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-            <input
-              type="text"
-              placeholder="Search projects, skills, developers..."
-              className="w-full pl-10 pr-4 h-10 bg-muted/50 border border-border rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all duration-200"
-            />
-          </div>
+          <SearchDialog onSearch={handleSearch} currentFilters={currentFilters}>
+            <div className="relative w-full cursor-pointer group">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground group-hover:text-primary transition-colors" />
+              <div className="w-full pl-10 pr-4 h-10 bg-muted/50 border border-border rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all duration-200 hover:bg-muted/70 flex items-center group-hover:border-primary/30">
+                <span className="text-muted-foreground group-hover:text-foreground transition-colors">
+                  Search projects, skills, developers...
+                </span>
+              </div>
+            </div>
+          </SearchDialog>
         </div>
 
         {/* Right Side Actions */}
@@ -133,7 +155,7 @@ export function ModernHeader({
                     <div className="flex flex-col space-y-1 leading-none min-w-0 flex-1">
                       <p className="font-medium truncate">{userName}</p>
                       <p className="text-sm text-muted-foreground truncate">
-                        developer@rux.platform
+                        {userEmail}
                       </p>
                     </div>
                   </div>
@@ -183,14 +205,16 @@ export function ModernHeader({
 
       {/* Mobile Search Bar */}
       <div className="md:hidden px-4 pb-3">
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-          <input
-            type="text"
-            placeholder="Search..."
-            className="w-full pl-10 pr-4 h-9 bg-muted/50 border border-border rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all duration-200"
-          />
-        </div>
+        <SearchDialog onSearch={handleSearch} currentFilters={currentFilters}>
+          <div className="relative cursor-pointer group">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground group-hover:text-primary transition-colors" />
+            <div className="w-full pl-10 pr-4 h-9 bg-muted/50 border border-border rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all duration-200 hover:bg-muted/70 flex items-center group-hover:border-primary/30">
+              <span className="text-muted-foreground group-hover:text-foreground transition-colors">
+                Search...
+              </span>
+            </div>
+          </div>
+        </SearchDialog>
       </div>
     </header>
   );

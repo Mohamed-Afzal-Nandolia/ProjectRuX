@@ -7,7 +7,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { getUsername } from "@/utils/jwt";
-import { getPlatformStats } from "@/services/api";
+import { getPlatformStats, getAllRoles } from "@/services/api";
 import {
   TrendingUp,
   Users,
@@ -20,6 +20,12 @@ import {
   Sparkles,
   Trophy,
   Target,
+  Monitor,
+  Server,
+  Smartphone,
+  Settings,
+  Database,
+  TestTube,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 
@@ -30,39 +36,108 @@ const trendingTags = [
   { name: "design", count: "1.1k", trend: "+5%" },
 ];
 
-const suggestedRoles = [
-  {
-    name: "Frontend",
+// Helper function to map role names to icons and colors (following 2-3 color preference)
+const getRoleDisplayInfo = (roleName: string) => {
+  const role = roleName.toLowerCase();
+
+  if (role.includes("frontend") || role.includes("ui")) {
+    return {
+      icon: Monitor,
+      color: "bg-purple-500/10 text-purple-600",
+      border: "border-purple-500/20",
+    };
+  }
+
+  if (role.includes("backend") || role.includes("server")) {
+    return {
+      icon: Server,
+      color: "bg-orange-500/10 text-orange-600",
+      border: "border-orange-500/20",
+    };
+  }
+
+  if (role.includes("fullstack") || role.includes("full")) {
+    return {
+      icon: Code,
+      color: "bg-purple-500/10 text-purple-600",
+      border: "border-purple-500/20",
+    };
+  }
+
+  if (role.includes("mobile") || role.includes("app")) {
+    return {
+      icon: Smartphone,
+      color: "bg-orange-500/10 text-orange-600",
+      border: "border-orange-500/20",
+    };
+  }
+
+  if (role.includes("devops") || role.includes("ops")) {
+    return {
+      icon: Settings,
+      color: "bg-purple-500/10 text-purple-600",
+      border: "border-purple-500/20",
+    };
+  }
+
+  if (role.includes("data") || role.includes("engineer")) {
+    return {
+      icon: Database,
+      color: "bg-orange-500/10 text-orange-600",
+      border: "border-orange-500/20",
+    };
+  }
+
+  if (role.includes("ai") || role.includes("ml") || role.includes("machine")) {
+    return {
+      icon: Brain,
+      color: "bg-purple-500/10 text-purple-600",
+      border: "border-purple-500/20",
+    };
+  }
+
+  if (role.includes("ux") || role.includes("design")) {
+    return {
+      icon: Palette,
+      color: "bg-orange-500/10 text-orange-600",
+      border: "border-orange-500/20",
+    };
+  }
+
+  if (role.includes("qa") || role.includes("test")) {
+    return {
+      icon: TestTube,
+      color: "bg-purple-500/10 text-purple-600",
+      border: "border-purple-500/20",
+    };
+  }
+
+  if (role.includes("product") || role.includes("manager")) {
+    return {
+      icon: Target,
+      color: "bg-orange-500/10 text-orange-600",
+      border: "border-orange-500/20",
+    };
+  }
+
+  // Default fallback
+  return {
     icon: Code,
-    color: "bg-blue-500/10 text-blue-600",
-    border: "border-blue-500/20",
-  },
-  {
-    name: "Backend",
-    icon: Code,
-    color: "bg-green-500/10 text-green-600",
-    border: "border-green-500/20",
-  },
-  {
-    name: "AI/ML",
-    icon: Brain,
     color: "bg-purple-500/10 text-purple-600",
     border: "border-purple-500/20",
-  },
-  {
-    name: "Designer",
-    icon: Palette,
-    color: "bg-pink-500/10 text-pink-600",
-    border: "border-pink-500/20",
-  },
-];
+  };
+};
 
 export interface SidebarRightRef {
   refreshPlatformStats: () => void;
 }
 
-export const SidebarRight = forwardRef<SidebarRightRef, {}>(
-  function SidebarRight(props, ref) {
+interface SidebarRightProps {
+  onRoleFilter?: (role: string) => void;
+}
+
+export const SidebarRight = forwardRef<SidebarRightRef, SidebarRightProps>(
+  function SidebarRight({ onRoleFilter }, ref) {
     const router = useRouter();
     const [user, setUser] = useState<{ username: string; bio: string } | null>(
       null
@@ -72,6 +147,8 @@ export const SidebarRight = forwardRef<SidebarRightRef, {}>(
       developers: number;
     } | null>(null);
     const [loading, setLoading] = useState(true);
+    const [roles, setRoles] = useState<string[]>([]);
+    const [rolesLoading, setRolesLoading] = useState(true);
 
     // Helper function to format numbers
     const formatNumber = (num: number): string => {
@@ -133,9 +210,40 @@ export const SidebarRight = forwardRef<SidebarRightRef, {}>(
       }
     };
 
+    // Fetch roles function
+    const fetchRoles = async () => {
+      try {
+        setRolesLoading(true);
+        const response = await getAllRoles({});
+        const rolesData = response?.data || [];
+
+        // Format enum labels and take first 4 for display
+        const formattedRoles = rolesData
+          .map((role: string) =>
+            role
+              .toLowerCase()
+              .split("_")
+              .map(
+                (word: string) => word.charAt(0).toUpperCase() + word.slice(1)
+              )
+              .join(" ")
+          )
+          .slice(0, 4); // Show only first 4 roles in grid
+
+        setRoles(formattedRoles);
+      } catch (error) {
+        console.error("Failed to fetch roles:", error);
+        // Set default roles on error
+        setRoles(["Frontend", "Backend", "Full Stack", "Designer"]);
+      } finally {
+        setRolesLoading(false);
+      }
+    };
+
     // Fetch platform stats on mount
     useEffect(() => {
       fetchPlatformStats();
+      fetchRoles();
     }, []);
 
     // Expose refresh function to parent
@@ -225,19 +333,40 @@ export const SidebarRight = forwardRef<SidebarRightRef, {}>(
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-2 gap-3">
-              {suggestedRoles.map((role) => {
-                const Icon = role.icon;
-                return (
-                  <div
-                    key={role.name}
-                    className={`p-3 rounded-lg border ${role.color} ${role.border} hover:scale-105 transition-all duration-200 cursor-pointer group`}
-                  >
-                    <Icon className="w-5 h-5 mb-2" />
-                    <div className="font-medium text-sm">{role.name}</div>
-                    <div className="text-xs opacity-70">High demand</div>
-                  </div>
-                );
-              })}
+              {rolesLoading
+                ? // Loading state
+                  [...Array(4)].map((_, index) => (
+                    <div
+                      key={index}
+                      className="p-3 rounded-lg border bg-muted/30 animate-pulse"
+                    >
+                      <div className="w-5 h-5 bg-muted rounded mb-2"></div>
+                      <div className="w-16 h-4 bg-muted rounded mb-1"></div>
+                      <div className="w-20 h-3 bg-muted rounded"></div>
+                    </div>
+                  ))
+                : roles.map((roleName, index) => {
+                    const roleInfo = getRoleDisplayInfo(roleName);
+                    const Icon = roleInfo.icon;
+                    return (
+                      <div
+                        key={roleName}
+                        onClick={() => {
+                          console.log("🎯 Role clicked:", roleName);
+                          if (onRoleFilter) {
+                            onRoleFilter(roleName);
+                          }
+                        }}
+                        className={`p-3 rounded-lg border ${roleInfo.color} ${roleInfo.border} hover:scale-105 transition-all duration-200 cursor-pointer group hover:shadow-md`}
+                      >
+                        <Icon className="w-5 h-5 mb-2" />
+                        <div className="font-medium text-sm">{roleName}</div>
+                        <div className="text-xs opacity-70">
+                          Click to filter
+                        </div>
+                      </div>
+                    );
+                  })}
             </div>
           </CardContent>
         </Card>

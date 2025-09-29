@@ -9,7 +9,9 @@ import { Button } from "@/components/ui/button";
 import { useState, useEffect, useRef } from "react";
 import { ApplicationsList } from "@/components/applications-list";
 import { MyPostsList } from "@/components/my-posts-list";
-import { Plus, TrendingUp, Users, Briefcase } from "lucide-react";
+import { Plus, TrendingUp, Users, Briefcase, X } from "lucide-react";
+import { getUsername, getUserEmail } from "@/utils/jwt";
+import { Badge } from "@/components/ui/badge";
 
 // 👇 import your tour provider + hook
 import { AppTour } from "@/components/app-tour";
@@ -21,9 +23,14 @@ export default function HomePage() {
   const [activeSection, setActiveSection] = useState<ActiveSection>("home");
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [userName, setUserName] = useState("Anonymous");
+  const [userEmail, setUserEmail] = useState("");
   const sidebarRef = useRef<SidebarLeftRef>(null);
   const sidebarRightRef = useRef<SidebarRightRef>(null);
   const [feedRefresh, setFeedRefresh] = useState(0); // Trigger for FeedList refresh
+  const [searchFilters, setSearchFilters] = useState<{
+    roles: string[];
+    skills: string[];
+  }>({ roles: [], skills: [] });
 
   // Function to refresh stats - passed to components that need it
   const refreshStats = () => {
@@ -50,12 +57,53 @@ export default function HomePage() {
     setFeedRefresh((prev) => prev + 1);
   };
 
+  // Handle search filters from header
+  const handleSearch = (filters: { roles: string[]; skills: string[] }) => {
+    console.log("Search filters applied:", filters);
+    setSearchFilters(filters);
+
+    // Switch to home section to show search results
+    if (activeSection !== "home") {
+      setActiveSection("home");
+    }
+  };
+
+  // Handle role filter from sidebar
+  const handleRoleFilter = (role: string) => {
+    console.log("Role filter from sidebar:", role);
+
+    // Replace existing filters with the new role filter
+    const newFilters = {
+      roles: [role], // Only the clicked role
+      skills: [], // Clear skills when filtering by role
+    };
+    setSearchFilters(newFilters);
+
+    // Switch to home section to show filtered results
+    if (activeSection !== "home") {
+      setActiveSection("home");
+    }
+  };
+
+  // Clear search filters
+  const clearSearch = () => {
+    setSearchFilters({ roles: [], skills: [] });
+  };
+
   useEffect(() => {
     const token = localStorage.getItem("token");
     if (token) {
       setIsAuthenticated(true);
-      // You could decode the token to get user info
-      setUserName("Developer"); // Placeholder
+      // Extract user info from JWT token
+      const username = getUsername();
+      const email = getUserEmail();
+
+      if (username) {
+        setUserName(username);
+      }
+      if (email) {
+        setUserEmail(email);
+      }
     }
   }, []);
 
@@ -75,6 +123,13 @@ export default function HomePage() {
   };
 
   const getSectionTitle = (section: ActiveSection) => {
+    if (
+      section === "home" &&
+      (searchFilters.roles.length > 0 || searchFilters.skills.length > 0)
+    ) {
+      return "Filtered Projects";
+    }
+
     switch (section) {
       case "home":
         return "Discover Projects";
@@ -115,6 +170,7 @@ export default function HomePage() {
               refreshFeed();
               refreshAllStats();
             }}
+            filters={searchFilters}
           />
         );
       case "communities":
@@ -152,6 +208,7 @@ export default function HomePage() {
               refreshFeed();
               refreshAllStats();
             }}
+            filters={searchFilters}
           />
         );
     }
@@ -161,7 +218,13 @@ export default function HomePage() {
     <AppTour>
       <div className="min-h-screen bg-background">
         {/* Modern Header */}
-        <ModernHeader isAuthenticated={isAuthenticated} userName={userName} />
+        <ModernHeader
+          isAuthenticated={isAuthenticated}
+          userName={userName}
+          userEmail={userEmail}
+          onSearch={handleSearch}
+          currentFilters={searchFilters}
+        />
 
         {/* Main Content */}
         <main className="container mx-auto px-4 py-8 max-w-7xl">
@@ -178,6 +241,61 @@ export default function HomePage() {
             <p className="text-muted-foreground text-lg">
               {getSectionDescription(activeSection)}
             </p>
+
+            {/* Active Filters Display */}
+            {activeSection === "home" &&
+              (searchFilters.roles.length > 0 ||
+                searchFilters.skills.length > 0) && (
+                <div className="mt-4 flex items-center gap-2 flex-wrap">
+                  <span className="text-sm text-muted-foreground">
+                    Active filters:
+                  </span>
+                  {searchFilters.roles.map((role) => (
+                    <Badge
+                      key={role}
+                      variant="secondary"
+                      className="flex items-center gap-1"
+                    >
+                      <span>Role: {role}</span>
+                      <X
+                        className="w-3 h-3 cursor-pointer hover:text-destructive"
+                        onClick={() => {
+                          setSearchFilters((prev) => ({
+                            ...prev,
+                            roles: prev.roles.filter((r) => r !== role),
+                          }));
+                        }}
+                      />
+                    </Badge>
+                  ))}
+                  {searchFilters.skills.map((skill) => (
+                    <Badge
+                      key={skill}
+                      variant="secondary"
+                      className="flex items-center gap-1"
+                    >
+                      <span>Skill: {skill}</span>
+                      <X
+                        className="w-3 h-3 cursor-pointer hover:text-destructive"
+                        onClick={() => {
+                          setSearchFilters((prev) => ({
+                            ...prev,
+                            skills: prev.skills.filter((s) => s !== skill),
+                          }));
+                        }}
+                      />
+                    </Badge>
+                  ))}
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={clearSearch}
+                    className="text-xs h-6 px-2"
+                  >
+                    Clear all
+                  </Button>
+                </div>
+              )}
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
@@ -220,7 +338,10 @@ export default function HomePage() {
             {/* Right Sidebar */}
             <div className="lg:col-span-3">
               <div className="sticky top-24">
-                <SidebarRight ref={sidebarRightRef} />
+                <SidebarRight
+                  ref={sidebarRightRef}
+                  onRoleFilter={handleRoleFilter}
+                />
               </div>
             </div>
           </div>

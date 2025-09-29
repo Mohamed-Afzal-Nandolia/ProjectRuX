@@ -57,8 +57,9 @@ public class PostController {
     }
 
     @GetMapping("/get-all-post")
-    public ResponseEntity<List<PostDto>> getAllPost(){
-        List<PostDto> allPosts = postService.getAllPosts();
+    public ResponseEntity<List<PostDto>> getAllPost(@RequestParam(required = false) Roles role,
+                                                    @RequestParam(required = false) Skill skill){
+        List<PostDto> allPosts = postService.getAllPosts(role, skill);
         return ResponseEntity.ok(allPosts);
     }
 

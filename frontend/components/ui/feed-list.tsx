@@ -22,6 +22,10 @@ const formatEnumLabel = (str: string) =>
     .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
     .join(" ");
 
+// Helper to convert "Title Case" back to "UPPER_CASE" for API
+const reverseEnumLabel = (str: string) =>
+  str.toUpperCase().split(" ").join("_");
+
 // Map backend data -> frontend Post type
 function mapPost(apiPost: any, username?: string): Post {
   return {
@@ -46,6 +50,12 @@ function mapPost(apiPost: any, username?: string): Post {
       apiPost.createdAt[5],
       Math.floor(apiPost.createdAt[6] / 1000000)
     ).toISOString(),
+    rolesRequired:
+      apiPost.rolesRequired?.map((r: any) => ({
+        role: formatEnumLabel(r.role),
+        requiredSkills: r.requiredSkills?.map(formatEnumLabel) || [],
+        openings: r.openings || 1,
+      })) || [],
     applicants: apiPost.applicants || [], // Include applicants data
   };
 }
@@ -66,9 +76,14 @@ const getTimeAgo = (dateString: string) => {
 interface FeedListProps {
   onStatsRefresh?: () => void;
   onPostCreated?: () => void;
+  filters?: { roles: string[]; skills: string[] };
 }
 
-export function FeedList({ onStatsRefresh, onPostCreated }: FeedListProps) {
+export function FeedList({
+  onStatsRefresh,
+  onPostCreated,
+  filters,
+}: FeedListProps) {
   const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -84,7 +99,20 @@ export function FeedList({ onStatsRefresh, onPostCreated }: FeedListProps) {
     try {
       setLoading(true);
       setError(null);
-      const res = await getAllPost({});
+
+      // Convert filters to API format
+      const apiFilters: { role?: string; skill?: string } = {};
+
+      // Convert human-readable format back to API enum format
+      if (filters?.roles && filters.roles.length > 0) {
+        apiFilters.role = reverseEnumLabel(filters.roles[0]);
+      }
+
+      if (filters?.skills && filters.skills.length > 0) {
+        apiFilters.skill = reverseEnumLabel(filters.skills[0]);
+      }
+
+      const res = await getAllPost(apiFilters);
       const apiPosts = res?.data || [];
 
       // Fetch usernames for all posts
@@ -104,9 +132,7 @@ export function FeedList({ onStatsRefresh, onPostCreated }: FeedListProps) {
       );
 
       // Filter to only show OPEN posts (hide CLOSED posts)
-      const openPosts = postsWithNames.filter(
-        (post) => post.status === "OPEN"
-      );
+      const openPosts = postsWithNames.filter((post) => post.status === "OPEN");
       console.log(
         `Showing ${openPosts.length} out of ${postsWithNames.length} posts (filtered out CLOSED posts)`
       );
@@ -146,7 +172,7 @@ export function FeedList({ onStatsRefresh, onPostCreated }: FeedListProps) {
 
   useEffect(() => {
     fetchPosts();
-  }, []);
+  }, [filters]);
 
   if (loading) {
     return (
@@ -208,10 +234,12 @@ export function FeedList({ onStatsRefresh, onPostCreated }: FeedListProps) {
           <p className="text-muted-foreground mb-4">
             Be the first to share an amazing project with the community!
           </p>
-          <CreatePostDialog onPostCreated={() => {
-            fetchPosts(); // Refresh the feed
-            if (onPostCreated) onPostCreated(); // Call parent callback
-          }}>
+          <CreatePostDialog
+            onPostCreated={() => {
+              fetchPosts(); // Refresh the feed
+              if (onPostCreated) onPostCreated(); // Call parent callback
+            }}
+          >
             <Button className="gradient-primary hover-lift text-white border-0">
               Create First Project
             </Button>
@@ -305,7 +333,7 @@ export function FeedList({ onStatsRefresh, onPostCreated }: FeedListProps) {
                 </p>
               )}
 
-              {/* Tags and Tech Stack */}
+              {/* Tech Stack, Roles, and Required Skills */}
               <div className="flex flex-wrap items-center gap-2">
                 {post.techstack?.map((tech, index) => (
                   <Badge
@@ -321,36 +349,50 @@ export function FeedList({ onStatsRefresh, onPostCreated }: FeedListProps) {
                   </Badge>
                 ))}
 
+                {/* Roles */}
                 {post.roles && post.roles.length > 0 && (
-                  <Separator orientation="vertical" className="mx-1 h-4" />
+                  <>
+                    {post.techstack && post.techstack.length > 0 && (
+                      <Separator orientation="vertical" className="mx-1 h-4" />
+                    )}
+                    {post.roles?.map((role, index) => (
+                      <Badge
+                        key={role}
+                        className={`${
+                          index % 2 === 0
+                            ? "bg-purple-500/10 text-purple-600 border-purple-500/20"
+                            : "bg-orange-500/10 text-orange-600 border-orange-500/20"
+                        } hover:scale-105 transition-all`}
+                      >
+                        {role}
+                      </Badge>
+                    ))}
+                  </>
                 )}
 
-                {post.roles?.map((role, index) => (
-                  <Badge
-                    key={role}
-                    className={`${
-                      index % 2 === 0
-                        ? "bg-purple-500/10 text-purple-600 border-purple-500/20"
-                        : "bg-orange-500/10 text-orange-600 border-orange-500/20"
-                    } hover:scale-105 transition-all`}
-                  >
-                    {role}
-                  </Badge>
-                ))}
-
-                {post.tags.length > 0 && (
-                  <Separator orientation="vertical" className="mx-1 h-4" />
+                {/* Required Skills from Role Requirements */}
+                {post.rolesRequired && post.rolesRequired.length > 0 && (
+                  <>
+                    {(post.techstack && post.techstack.length > 0) ||
+                    (post.roles && post.roles.length > 0) ? (
+                      <Separator orientation="vertical" className="mx-1 h-4" />
+                    ) : null}
+                    {post.rolesRequired.map((roleReq, roleIndex) =>
+                      roleReq.requiredSkills?.map((skill, skillIndex) => (
+                        <Badge
+                          key={`${roleReq.role}-${skill}-${skillIndex}`}
+                          className={`${
+                            (roleIndex + skillIndex) % 2 === 0
+                              ? "bg-emerald-500/10 text-emerald-600 border-emerald-500/20"
+                              : "bg-orange-500/10 text-orange-600 border-orange-500/20"
+                          } hover:scale-105 transition-all`}
+                        >
+                          {skill}
+                        </Badge>
+                      ))
+                    )}
+                  </>
                 )}
-
-                {post.tags.map((tag) => (
-                  <Badge
-                    key={tag}
-                    variant="secondary"
-                    className="hover:bg-muted/80 transition-colors"
-                  >
-                    #{tag}
-                  </Badge>
-                ))}
               </div>
             </CardContent>
           </Card>

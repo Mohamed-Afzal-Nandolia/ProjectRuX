@@ -9,7 +9,22 @@ export const validateAuthToken = (data: any) => api.post("/auth/validate", data)
 export const getAllSkills = (data: any) => api.get("/post/get-all-skills", data);
 export const getAllRoles = (data: any) => api.get("/post/get-all-roles", data);
 export const createPost = (data: any) => api.post("/post/create-post", data);
-export const getAllPost = (data: any) => api.get("/post/get-all-post", data);
+export const getAllPost = (filters?: { role?: string; skill?: string }) => {
+  const params = new URLSearchParams();
+  
+  if (filters?.role) {
+    params.append('role', filters.role);
+  }
+  
+  if (filters?.skill) {
+    params.append('skill', filters.skill);
+  }
+  
+  const queryString = params.toString();
+  const url = `/post/get-all-post${queryString ? `?${queryString}` : ''}`;
+  
+  return api.get(url, {});
+};
 export const updateUserRoleAndSkill = (data: any) => api.put("/user/update-user-roles-and-skills", data);
 export const getUserProfile = (id: string, data: any) => api.get(`/user/${id}`, data);
 export const applyForPosition = (id: string, data: any) => api.post(`/post/add-applicants/${id}`, data);
