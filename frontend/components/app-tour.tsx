@@ -121,7 +121,7 @@ function TourButton() {
       variant="default"
       size="sm"
       onClick={() => setIsOpen(true)}
-      className="fixed bottom-6 right-6 z-50 shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105"
+      className="hidden md:flex fixed bottom-6 right-6 z-50 shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105"
       data-tour="tour-button"
     >
       <HelpCircle className="h-4 w-4 mr-2" />

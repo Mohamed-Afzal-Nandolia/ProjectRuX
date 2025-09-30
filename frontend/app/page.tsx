@@ -354,10 +354,6 @@ export default function HomePage() {
         <MobileNavigation
           activeSection={activeSection}
           setActiveSection={setActiveSection}
-          onPostCreated={() => {
-            refreshFeed();
-            refreshAllStats();
-          }}
           onSearch={handleSearch}
           currentFilters={searchFilters}
         />

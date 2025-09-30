@@ -12,10 +12,8 @@ import {
   Menu,
   X,
   TrendingUp,
-  Plus,
   Search,
 } from "lucide-react";
-import { CreatePostDialog } from "./create-post-dialog";
 import { SearchDialog } from "./search-dialog";
 
 type ActiveSection = "home" | "communities" | "posts" | "applications";
@@ -23,7 +21,6 @@ type ActiveSection = "home" | "communities" | "posts" | "applications";
 interface MobileNavigationProps {
   activeSection: ActiveSection;
   setActiveSection: (section: ActiveSection) => void;
-  onPostCreated?: () => void;
   onSearch?: (filters: { roles: string[]; skills: string[] }) => void;
   currentFilters?: { roles: string[]; skills: string[] };
 }
@@ -58,7 +55,6 @@ const navigationItems = [
 export function MobileNavigation({
   activeSection,
   setActiveSection,
-  onPostCreated,
   onSearch,
   currentFilters,
 }: MobileNavigationProps) {
@@ -95,16 +91,6 @@ export function MobileNavigation({
               </Button>
             );
           })}
-
-          {/* Create Post Button */}
-          <CreatePostDialog onPostCreated={onPostCreated}>
-            <Button
-              size="sm"
-              className="gradient-primary text-white border-0 h-12 px-4 rounded-lg"
-            >
-              <Plus className="w-5 h-5" />
-            </Button>
-          </CreatePostDialog>
         </div>
       </div>
 
@@ -198,16 +184,6 @@ export function MobileNavigation({
                   </div>
                 </div>
               )}
-
-            {/* Create Post */}
-            <div className="p-4 border-t border-border">
-              <CreatePostDialog onPostCreated={onPostCreated}>
-                <Button className="w-full gradient-primary text-white border-0 h-12">
-                  <Plus className="w-5 h-5 mr-2" />
-                  Create Project
-                </Button>
-              </CreatePostDialog>
-            </div>
           </div>
         </DialogContent>
       </Dialog>
