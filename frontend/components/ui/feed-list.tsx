@@ -176,25 +176,25 @@ export function FeedList({
 
   if (loading) {
     return (
-      <div className="space-y-6" data-tour="center-feed">
+      <div className="space-y-4 sm:space-y-6" data-tour="center-feed">
         {[...Array(3)].map((_, i) => (
           <Card
             key={i}
             className="glass-card border-glass-border animate-pulse"
           >
-            <CardContent className="p-6">
+            <CardContent className="p-4 sm:p-6">
               <div className="flex items-center gap-3 mb-4">
-                <div className="w-10 h-10 bg-muted rounded-full"></div>
+                <div className="w-8 h-8 sm:w-10 sm:h-10 bg-muted rounded-full"></div>
                 <div className="flex-1">
-                  <div className="w-32 h-4 bg-muted rounded mb-2"></div>
-                  <div className="w-48 h-3 bg-muted rounded"></div>
+                  <div className="w-24 sm:w-32 h-3 sm:h-4 bg-muted rounded mb-2"></div>
+                  <div className="w-32 sm:w-48 h-2 sm:h-3 bg-muted rounded"></div>
                 </div>
               </div>
-              <div className="w-full h-20 bg-muted rounded mb-4"></div>
+              <div className="w-full h-16 sm:h-20 bg-muted rounded mb-4"></div>
               <div className="flex gap-2">
-                <div className="w-16 h-6 bg-muted rounded"></div>
-                <div className="w-20 h-6 bg-muted rounded"></div>
-                <div className="w-12 h-6 bg-muted rounded"></div>
+                <div className="w-12 sm:w-16 h-5 sm:h-6 bg-muted rounded"></div>
+                <div className="w-16 sm:w-20 h-5 sm:h-6 bg-muted rounded"></div>
+                <div className="w-10 sm:w-12 h-5 sm:h-6 bg-muted rounded"></div>
               </div>
             </CardContent>
           </Card>
@@ -250,45 +250,50 @@ export function FeedList({
   }
 
   return (
-    <div className="space-y-6" data-tour="center-feed">
+    <div className="space-y-4 sm:space-y-6" data-tour="center-feed">
       {posts.map((post: Post) => {
         return (
           <Card
             key={post.id}
             className="glass-card border-glass-border hover-lift group overflow-hidden"
           >
-            <CardHeader className="pb-4">
-              <div className="flex items-start justify-between">
-                <div className="flex items-center gap-3 flex-1">
-                  <div className="relative">
-                    <Avatar className="h-11 w-11 border-2 border-purple-500/20">
+            <CardHeader className="pb-3 sm:pb-4">
+              <div className="flex items-start justify-between gap-2">
+                <div className="flex items-center gap-2 sm:gap-3 flex-1 min-w-0">
+                  <div className="relative flex-shrink-0">
+                    <Avatar className="h-9 w-9 sm:h-11 sm:w-11 border-2 border-purple-500/20">
                       <AvatarImage
                         src={post.author.avatarUrl || undefined}
                         alt={`${post.author.name} avatar`}
                       />
-                      <AvatarFallback className="bg-gradient-to-br from-purple-500 to-orange-500 text-white font-semibold">
+                      <AvatarFallback className="bg-gradient-to-br from-purple-500 to-orange-500 text-white font-semibold text-xs sm:text-sm">
                         {post.author.name.slice(0, 2).toUpperCase()}
                       </AvatarFallback>
                     </Avatar>
-                    <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-background"></div>
+                    <div className="absolute -bottom-1 -right-1 w-3 h-3 sm:w-4 sm:h-4 bg-green-500 rounded-full border-2 border-background"></div>
                   </div>
                   <div className="min-w-0 flex-1">
-                    <CardTitle className="text-lg font-semibold mb-1 group-hover:text-primary transition-colors">
+                    <CardTitle className="text-base sm:text-lg font-semibold mb-1 group-hover:text-primary transition-colors truncate">
                       {post.title}
                     </CardTitle>
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                      <span className="font-medium text-foreground">
+                    <div className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm text-muted-foreground">
+                      <span className="font-medium text-foreground truncate">
                         by {post.author.name}
                       </span>
-                      <span>•</span>
+                      <span className="hidden sm:inline">•</span>
                       <div className="flex items-center gap-1">
                         <Clock className="w-3 h-3" />
-                        {getTimeAgo(post.createdAt)}
+                        <span className="hidden sm:inline">
+                          {getTimeAgo(post.createdAt)}
+                        </span>
+                        <span className="sm:hidden">
+                          {getTimeAgo(post.createdAt).replace(" ago", "")}
+                        </span>
                       </div>
                       {post.roles && post.roles.length > 0 && (
                         <>
-                          <span>•</span>
-                          <div className="flex items-center gap-1 text-orange-600">
+                          <span className="hidden sm:inline">•</span>
+                          <div className="hidden sm:flex items-center gap-1 text-orange-600">
                             <Users className="w-3 h-3" />
                             <span className="text-xs">
                               {post.roles.length} roles
@@ -300,15 +305,18 @@ export function FeedList({
                   </div>
                 </div>
 
-                {/* Apply Button in Header */}
+                {/* Apply Button in Header - Responsive */}
                 {post.roles && post.roles.length > 0 && (
-                  <>
+                  <div className="flex-shrink-0">
                     {hasUserApplied(post) ? (
                       <Badge
                         variant="outline"
-                        className="bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950 dark:text-blue-300 dark:border-blue-800 ml-4"
+                        className="bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950 dark:text-blue-300 dark:border-blue-800 text-xs"
                       >
-                        Already Applied
+                        <span className="hidden sm:inline">
+                          Already Applied
+                        </span>
+                        <span className="sm:hidden">Applied</span>
                       </Badge>
                     ) : (
                       <Button
@@ -316,17 +324,18 @@ export function FeedList({
                           setActivePost(post);
                           toast.info(`Applying to ${post.title}... ✨`);
                         }}
-                        className="gradient-primary hover-lift text-white border-0 h-9 px-6 text-sm font-medium ml-4"
+                        className="gradient-primary hover-lift text-white border-0 h-8 sm:h-9 px-3 sm:px-6 text-xs sm:text-sm font-medium"
                       >
-                        Apply Now
+                        <span className="hidden sm:inline">Apply Now</span>
+                        <span className="sm:hidden">Apply</span>
                       </Button>
                     )}
-                  </>
+                  </div>
                 )}
               </div>
             </CardHeader>
 
-            <CardContent className="space-y-4">
+            <CardContent className="space-y-3 sm:space-y-4 p-4 sm:p-6">
               {post.description && (
                 <p className="text-sm leading-relaxed text-foreground/80">
                   {post.description}
@@ -334,12 +343,12 @@ export function FeedList({
               )}
 
               {/* Tech Stack, Roles, and Required Skills */}
-              <div className="flex flex-wrap items-center gap-2">
+              <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
                 {post.techstack?.map((tech, index) => (
                   <Badge
                     key={tech}
                     variant="outline"
-                    className={`border-purple-500/30 text-purple-600 hover:bg-purple-500/10 transition-colors ${
+                    className={`border-purple-500/30 text-purple-600 hover:bg-purple-500/10 transition-colors text-xs ${
                       index % 2 === 0
                         ? "hover:border-purple-500/50"
                         : "hover:border-orange-500/50 hover:text-orange-600"
@@ -353,12 +362,15 @@ export function FeedList({
                 {post.roles && post.roles.length > 0 && (
                   <>
                     {post.techstack && post.techstack.length > 0 && (
-                      <Separator orientation="vertical" className="mx-1 h-4" />
+                      <Separator
+                        orientation="vertical"
+                        className="mx-1 h-3 sm:h-4"
+                      />
                     )}
                     {post.roles?.map((role, index) => (
                       <Badge
                         key={role}
-                        className={`${
+                        className={`text-xs ${
                           index % 2 === 0
                             ? "bg-purple-500/10 text-purple-600 border-purple-500/20"
                             : "bg-orange-500/10 text-orange-600 border-orange-500/20"
@@ -375,13 +387,16 @@ export function FeedList({
                   <>
                     {(post.techstack && post.techstack.length > 0) ||
                     (post.roles && post.roles.length > 0) ? (
-                      <Separator orientation="vertical" className="mx-1 h-4" />
+                      <Separator
+                        orientation="vertical"
+                        className="mx-1 h-3 sm:h-4"
+                      />
                     ) : null}
                     {post.rolesRequired.map((roleReq, roleIndex) =>
                       roleReq.requiredSkills?.map((skill, skillIndex) => (
                         <Badge
                           key={`${roleReq.role}-${skill}-${skillIndex}`}
-                          className={`${
+                          className={`text-xs ${
                             (roleIndex + skillIndex) % 2 === 0
                               ? "bg-emerald-500/10 text-emerald-600 border-emerald-500/20"
                               : "bg-orange-500/10 text-orange-600 border-orange-500/20"

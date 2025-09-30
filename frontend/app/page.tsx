@@ -5,6 +5,7 @@ import { SidebarRight, SidebarRightRef } from "@/components/ui/sidebar-right";
 import { FeedList } from "@/components/ui/feed-list";
 import { CreatePostDialog } from "@/components/ui/create-post-dialog";
 import { ModernHeader } from "@/components/ui/modern-header";
+import { MobileNavigation } from "@/components/ui/mobile-navigation";
 import { Button } from "@/components/ui/button";
 import { useState, useEffect, useRef } from "react";
 import { ApplicationsList } from "@/components/applications-list";
@@ -227,18 +228,18 @@ export default function HomePage() {
         />
 
         {/* Main Content */}
-        <main className="container mx-auto px-4 py-8 max-w-7xl">
+        <main className="container mx-auto px-4 py-6 max-w-7xl pb-20 md:pb-8">
           {/* Section Header */}
-          <div className="mb-8">
+          <div className="mb-6">
             <div className="flex items-center gap-3 mb-2">
               <div className="p-2 rounded-lg bg-gradient-primary/10">
                 {getSectionIcon(activeSection)}
               </div>
-              <h1 className="text-3xl font-bold tracking-tight">
+              <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">
                 {getSectionTitle(activeSection)}
               </h1>
             </div>
-            <p className="text-muted-foreground text-lg">
+            <p className="text-muted-foreground text-base sm:text-lg">
               {getSectionDescription(activeSection)}
             </p>
 
@@ -246,15 +247,15 @@ export default function HomePage() {
             {activeSection === "home" &&
               (searchFilters.roles.length > 0 ||
                 searchFilters.skills.length > 0) && (
-                <div className="mt-4 flex items-center gap-2 flex-wrap">
-                  <span className="text-sm text-muted-foreground">
+                <div className="mt-3 sm:mt-4 flex items-center gap-2 flex-wrap">
+                  <span className="text-xs sm:text-sm text-muted-foreground">
                     Active filters:
                   </span>
                   {searchFilters.roles.map((role) => (
                     <Badge
                       key={role}
                       variant="secondary"
-                      className="flex items-center gap-1"
+                      className="flex items-center gap-1 text-xs"
                     >
                       <span>Role: {role}</span>
                       <X
@@ -272,7 +273,7 @@ export default function HomePage() {
                     <Badge
                       key={skill}
                       variant="secondary"
-                      className="flex items-center gap-1"
+                      className="flex items-center gap-1 text-xs"
                     >
                       <span>Skill: {skill}</span>
                       <X
@@ -298,9 +299,9 @@ export default function HomePage() {
               )}
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-            {/* Left Sidebar */}
-            <div className="lg:col-span-3">
+          <div className="grid grid-cols-1 xl:grid-cols-12 gap-6">
+            {/* Left Sidebar - Hidden on mobile, collapsed on tablet */}
+            <div className="hidden lg:block xl:col-span-3">
               <div className="sticky top-24">
                 <SidebarLeft
                   ref={sidebarRef}
@@ -315,7 +316,7 @@ export default function HomePage() {
             </div>
 
             {/* Center Feed */}
-            <section className="lg:col-span-6 space-y-6">
+            <section className="lg:col-span-6 xl:col-span-6 space-y-4 sm:space-y-6">
               {/* Quick Actions for Mobile */}
               <div className="lg:hidden">
                 <CreatePostDialog
@@ -324,19 +325,21 @@ export default function HomePage() {
                     refreshAllStats();
                   }}
                 >
-                  <Button className="w-full gradient-primary hover-lift text-white border-0 h-12">
-                    <Plus className="w-4 h-4 mr-2" />
+                  <Button className="w-full gradient-primary hover-lift text-white border-0 h-12 text-base font-medium">
+                    <Plus className="w-5 h-5 mr-2" />
                     Create New Project
                   </Button>
                 </CreatePostDialog>
               </div>
 
               {/* Feed Content */}
-              <div className="space-y-6">{renderFeedContent()}</div>
+              <div className="space-y-4 sm:space-y-6">
+                {renderFeedContent()}
+              </div>
             </section>
 
-            {/* Right Sidebar */}
-            <div className="lg:col-span-3">
+            {/* Right Sidebar - Hidden on mobile and tablet */}
+            <div className="hidden xl:block xl:col-span-3">
               <div className="sticky top-24">
                 <SidebarRight
                   ref={sidebarRightRef}
@@ -346,6 +349,18 @@ export default function HomePage() {
             </div>
           </div>
         </main>
+
+        {/* Mobile Navigation */}
+        <MobileNavigation
+          activeSection={activeSection}
+          setActiveSection={setActiveSection}
+          onPostCreated={() => {
+            refreshFeed();
+            refreshAllStats();
+          }}
+          onSearch={handleSearch}
+          currentFilters={searchFilters}
+        />
 
         {/* Tour Button */}
       </div>

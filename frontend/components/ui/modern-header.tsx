@@ -101,7 +101,7 @@ export function ModernHeader({
         </div>
 
         {/* Search Bar (Desktop) */}
-        <div className="hidden md:flex flex-1 max-w-md mx-8">
+        <div className="hidden lg:flex flex-1 max-w-md mx-8">
           <SearchDialog onSearch={handleSearch} currentFilters={currentFilters}>
             <div className="relative w-full cursor-pointer group">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground group-hover:text-primary transition-colors" />
@@ -115,11 +115,15 @@ export function ModernHeader({
         </div>
 
         {/* Right Side Actions */}
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2">
           {isAuthenticated ? (
             <>
-              {/* Notifications */}
-              <Button variant="ghost" size="sm" className="relative hover-glow">
+              {/* Notifications - Hide on very small screens */}
+              <Button
+                variant="ghost"
+                size="sm"
+                className="relative hover-glow hidden sm:flex"
+              >
                 <Bell className="w-4 h-4" />
                 <span className="absolute -top-1 -right-1 w-2 h-2 bg-orange-500 rounded-full"></span>
               </Button>
@@ -129,15 +133,15 @@ export function ModernHeader({
                 <DropdownMenuTrigger asChild>
                   <Button
                     variant="ghost"
-                    className="flex items-center gap-2 h-10 px-3 hover-glow"
+                    className="flex items-center gap-1 sm:gap-2 h-10 px-2 sm:px-3 hover-glow"
                   >
-                    <Avatar className="h-8 w-8">
+                    <Avatar className="h-7 w-7 sm:h-8 sm:w-8">
                       <AvatarImage src={userAvatar} alt={userName} />
-                      <AvatarFallback className="bg-gradient-primary text-white text-sm">
+                      <AvatarFallback className="bg-gradient-primary text-white text-xs sm:text-sm">
                         {userName.slice(0, 2).toUpperCase()}
                       </AvatarFallback>
                     </Avatar>
-                    <ChevronDown className="w-4 h-4 text-muted-foreground" />
+                    <ChevronDown className="w-3 h-3 sm:w-4 sm:h-4 text-muted-foreground hidden sm:block" />
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent
@@ -184,16 +188,17 @@ export function ModernHeader({
                 variant="ghost"
                 size="sm"
                 onClick={() => router.push("/login")}
-                className="hover-glow"
+                className="hover-glow text-sm px-2 sm:px-3"
               >
                 Sign In
               </Button>
               <Button
                 size="sm"
                 onClick={() => router.push("/signup")}
-                className="gradient-primary hover-lift text-white border-0"
+                className="gradient-primary hover-lift text-white border-0 text-sm px-3 sm:px-4"
               >
-                Get Started
+                <span className="hidden sm:inline">Get Started</span>
+                <span className="sm:hidden">Join</span>
               </Button>
             </>
           )}

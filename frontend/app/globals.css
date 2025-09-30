@@ -248,4 +248,63 @@
   .custom-scrollbar::-webkit-scrollbar-thumb:hover {
     background: oklch(55% 0.18 264);
   }
+  
+  /* Mobile-specific optimizations */
+  @media (max-width: 768px) {
+    /* Better touch targets */
+    button, [role="button"] {
+      min-height: 44px;
+      min-width: 44px;
+    }
+    
+    /* Improved card spacing on mobile */
+    .glass-card {
+      margin-bottom: 16px;
+    }
+    
+    /* Better mobile typography */
+    h1 {
+      font-size: 1.75rem;
+      line-height: 1.2;
+    }
+    
+    h2 {
+      font-size: 1.5rem;
+      line-height: 1.3;
+    }
+    
+    /* Mobile-friendly padding */
+    .container {
+      padding-left: 16px;
+      padding-right: 16px;
+    }
+    
+    /* Hide scrollbars on mobile for cleaner look */
+    .custom-scrollbar {
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
+    }
+    
+    .custom-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+  }
+  
+  /* Touch-friendly hover states */
+  @media (hover: hover) {
+    .hover-lift:hover {
+      transform: translateY(-2px);
+    }
+    
+    .hover-glow:hover {
+      box-shadow: 0 10px 25px -5px oklch(55% 0.18 264 / 0.3), 0 10px 10px -5px oklch(55% 0.18 264 / 0.1);
+    }
+  }
+  
+  /* Mobile bottom navigation safe area */
+  @supports (padding-bottom: env(safe-area-inset-bottom)) {
+    .mobile-nav-safe {
+      padding-bottom: calc(env(safe-area-inset-bottom) + 16px);
+    }
+  }
 }
