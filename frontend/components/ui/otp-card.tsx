@@ -103,7 +103,7 @@ export function OtpCard({
 
   const handleResend = async () => {
     const otp = localStorage.getItem("otp-code");
-    if (cooldown > 0) return;
+    if (cooldown > 0 || !email) return;
     try {
       // 1. get userId
       const { data: userIdResponse } = await getUserIdByEmail({ email });
@@ -111,6 +111,10 @@ export function OtpCard({
 
       // 2. resend OTP
       const res = await authResendOtp(userId, { otpCode });
+
+      // 3. clear the input fields
+      setOtpCode("");
+      setError(null); // also clear any existing errors
 
       setCooldown(30); // start cooldown
     } catch (e: any) {

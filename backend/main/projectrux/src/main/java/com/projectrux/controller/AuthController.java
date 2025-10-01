@@ -88,4 +88,9 @@ public class AuthController {
         return ResponseEntity.ok(message);
     }
 
+    @GetMapping("/check-alive")
+    public ResponseEntity<String> checkServerAlive(){
+        return ResponseEntity.ok("Server is Alive");
+    }
+
 }

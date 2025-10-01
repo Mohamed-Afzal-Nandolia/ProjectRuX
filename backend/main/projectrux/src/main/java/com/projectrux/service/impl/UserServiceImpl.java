@@ -181,6 +181,7 @@ public class UserServiceImpl implements UserService {
             otpEntity = new Otp();
 //            return Map.of("error", "No OTP found");
         }
+        otpEntity.setUserId(userId);
         otpEntity.setOtpCode(generateOtp());
         otpEntity.setExpiryTime(LocalDateTime.now().plusMinutes(5));
         otpRepository.save(otpEntity);
