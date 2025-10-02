@@ -426,7 +426,7 @@ Team RuX
                         post.status === "OPEN"
                           ? "bg-green-500 hover:bg-green-600 text-white"
                           : post.status === "COMPLETED"
-                          ? "bg-gradient-to-r from-purple-500 to-pink-500 text-white border-0"
+                          ? "bg-primary text-primary-foreground border-0"
                           : "bg-gray-500 hover:bg-gray-600 text-white"
                       }
                     >
@@ -452,7 +452,7 @@ Team RuX
                             <Button
                               variant="default"
                               size="sm"
-                              className="h-8 px-3 bg-gradient-to-r from-green-500 to-emerald-500 text-white border-0 hover:from-green-600 hover:to-emerald-600"
+                              className="h-8 px-3 btn-success"
                               title="Mark Project as Complete"
                             >
                               <Trophy className="h-4 w-4 mr-1" />
@@ -474,7 +474,7 @@ Team RuX
                             <AlertDialogFooter>
                               <AlertDialogCancel>Cancel</AlertDialogCancel>
                               <AlertDialogAction
-                                className="bg-gradient-to-r from-green-500 to-emerald-500 text-white hover:from-green-600 hover:to-emerald-600"
+                                className="btn-success"
                                 onClick={() => handleMarkAsComplete(post.id)}
                               >
                                 <Trophy className="h-4 w-4 mr-2" />

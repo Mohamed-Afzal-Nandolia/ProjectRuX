@@ -123,7 +123,7 @@ export function OtpCard({
   };
 
   return (
-    <Card className={cn("w-full max-w-md", className)}>
+    <Card className={cn("w-full max-w-md otp-card glass-card", className)}>
       <CardHeader>
         <CardTitle className="text-pretty">{title}</CardTitle>
         <CardDescription className="text-pretty">

@@ -12,6 +12,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { SearchDialog } from "@/components/ui/search-dialog";
+import { CreatePostDialog } from "@/components/ui/create-post-dialog";
 import {
   Bell,
   Search,
@@ -19,6 +20,7 @@ import {
   LogOut,
   Sparkles,
   ChevronDown,
+  Plus,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
@@ -30,6 +32,7 @@ interface ModernHeaderProps {
   userAvatar?: string;
   onSearch?: (filters: { roles: string[]; skills: string[] }) => void;
   currentFilters?: { roles: string[]; skills: string[] };
+  onPostCreated?: () => void;
 }
 
 export function ModernHeader({
@@ -39,6 +42,7 @@ export function ModernHeader({
   userAvatar,
   onSearch,
   currentFilters,
+  onPostCreated,
 }: ModernHeaderProps) {
   const router = useRouter();
   const [isScrolled, setIsScrolled] = useState(false);
@@ -82,8 +86,8 @@ export function ModernHeader({
         {/* Logo and Brand */}
         <div className="flex items-center gap-3">
           <div className="relative">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-purple-500 to-orange-500 flex items-center justify-center">
-              <Sparkles className="w-5 h-5 text-white" />
+            <div className="w-8 h-8 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center">
+              <Sparkles className="w-5 h-5 text-primary" />
             </div>
             <div className="absolute -top-1 -right-1 w-3 h-3 bg-orange-400 rounded-full animate-pulse"></div>
           </div>
@@ -100,18 +104,24 @@ export function ModernHeader({
           </div>
         </div>
 
-        {/* Search Bar (Desktop) */}
-        <div className="hidden lg:flex flex-1 max-w-md mx-8">
-          <SearchDialog onSearch={handleSearch} currentFilters={currentFilters}>
-            <div className="relative w-full cursor-pointer group">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground group-hover:text-primary transition-colors" />
-              <div className="w-full pl-10 pr-4 h-10 bg-muted/50 border border-border rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all duration-200 hover:bg-muted/70 flex items-center group-hover:border-primary/30">
-                <span className="text-muted-foreground group-hover:text-foreground transition-colors">
-                  Search projects, skills, developers...
-                </span>
+        {/* Search Bar and Create Project (Desktop) */}
+        <div className="hidden lg:flex flex-1 max-w-2xl mx-8 gap-3">
+          <div className="flex-1">
+            <SearchDialog
+              onSearch={handleSearch}
+              currentFilters={currentFilters}
+            >
+              <div className="relative w-full cursor-pointer group">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground group-hover:text-primary transition-colors" />
+                <div className="w-full pl-10 pr-4 h-10 bg-muted/50 border border-border rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all duration-200 hover:bg-muted/70 flex items-center group-hover:border-primary/30">
+                  <span className="text-muted-foreground group-hover:text-foreground transition-colors">
+                    Search projects, skills, developers...
+                  </span>
+                </div>
               </div>
-            </div>
-          </SearchDialog>
+            </SearchDialog>
+          </div>
+          {/* Create Project button moved to Navigation panel */}
         </div>
 
         {/* Right Side Actions */}
@@ -137,7 +147,7 @@ export function ModernHeader({
                   >
                     <Avatar className="h-7 w-7 sm:h-8 sm:w-8">
                       <AvatarImage src={userAvatar} alt={userName} />
-                      <AvatarFallback className="bg-gradient-primary text-white text-xs sm:text-sm">
+                      <AvatarFallback className="bg-primary text-white text-xs sm:text-sm">
                         {userName.slice(0, 2).toUpperCase()}
                       </AvatarFallback>
                     </Avatar>
@@ -195,7 +205,7 @@ export function ModernHeader({
               <Button
                 size="sm"
                 onClick={() => router.push("/signup")}
-                className="gradient-primary hover-lift text-white border-0 text-sm px-3 sm:px-4"
+                className="bg-primary hover:bg-primary/90 text-primary-foreground hover-lift border-0 text-sm px-3 sm:px-4"
               >
                 <span className="hidden sm:inline">Get Started</span>
                 <span className="sm:hidden">Join</span>

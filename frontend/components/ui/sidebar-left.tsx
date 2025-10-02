@@ -16,6 +16,7 @@ import {
   TrendingUp,
   Briefcase,
   Loader2,
+  Plus,
 } from "lucide-react";
 
 interface UserStats {
@@ -69,7 +70,10 @@ const navigationItems = [
 ];
 
 export const SidebarLeft = forwardRef<SidebarLeftRef, SidebarLeftProps>(
-  function SidebarLeft({ activeSection, setActiveSection, onPostCreated }, ref) {
+  function SidebarLeft(
+    { activeSection, setActiveSection, onPostCreated },
+    ref
+  ) {
     const [stats, setStats] = useState<UserStats | null>(null);
     const [statsLoading, setStatsLoading] = useState(true);
 
@@ -101,41 +105,14 @@ export const SidebarLeft = forwardRef<SidebarLeftRef, SidebarLeftProps>(
     }));
     return (
       <aside className="w-72 space-y-6">
-        {/* Create Post Card */}
-        <Card
-          className="glass-card border-glass-border hover-lift"
-          data-tour="left-sidebar"
-        >
-          <CardContent className="p-6">
-            <CreatePostDialog onPostCreated={onPostCreated}>
-              <Button
-                className="w-full h-12 gradient-primary hover-lift text-white border-0 text-base font-medium"
-                data-tour="create-post-nav"
-              >
-                <PlusSquare className="h-5 w-5 mr-2" />
-                Create Project
-              </Button>
-            </CreatePostDialog>
-
-            <div className="mt-4 p-3 rounded-lg bg-muted/30">
-              <div className="flex items-center gap-2 mb-2">
-                <Sparkles className="w-4 h-4 text-orange-500" />
-                <span className="text-sm font-medium">Pro Tip</span>
-              </div>
-              <p className="text-xs text-muted-foreground">
-                Add detailed tech stack and role requirements to attract the
-                best collaborators!
-              </p>
-            </div>
-          </CardContent>
-        </Card>
+        {/* Create Project Button - Moved to main layout for horizontal alignment */}
 
         {/* Navigation Menu */}
         <Card className="glass-card border-glass-border">
           <CardHeader className="pb-3">
             <CardTitle className="text-lg font-semibold flex items-center gap-2">
-              <div className="w-6 h-6 rounded-md bg-gradient-to-br from-purple-500 to-orange-500 flex items-center justify-center">
-                <Home className="w-3 h-3 text-white" />
+              <div className="w-6 h-6 rounded-md bg-primary/10 border border-primary/20 flex items-center justify-center">
+                <Home className="w-3 h-3 text-primary" />
               </div>
               Navigation
             </CardTitle>
@@ -152,23 +129,16 @@ export const SidebarLeft = forwardRef<SidebarLeftRef, SidebarLeftProps>(
                   onClick={() => setActiveSection(item.id)}
                   className={`w-full justify-start gap-3 h-12 rounded-lg transition-all duration-300 group relative overflow-hidden ${
                     isActive
-                      ? "bg-primary text-primary-foreground hover:bg-primary/90 shadow-lg"
+                      ? "bg-primary text-white hover:bg-primary/90 hover:text-white shadow-lg"
                       : "hover:bg-muted/50 hover-lift"
                   }`}
                   data-tour={`${item.id}-nav`}
                 >
-                  {/* Background gradient for active state */}
-                  {isActive && (
-                    <div
-                      className={`absolute inset-0 bg-gradient-to-r ${item.gradient} opacity-20 animate-pulse`}
-                    />
-                  )}
-
                   <div
                     className={`p-1.5 rounded-md ${
                       isActive
                         ? "bg-primary-foreground/20"
-                        : "bg-gradient-to-br from-purple-500/10 to-orange-500/10 group-hover:from-purple-500/20 group-hover:to-orange-500/20"
+                        : "bg-muted/30 group-hover:bg-muted/50"
                     } transition-all duration-300`}
                   >
                     <Icon className="h-4 w-4" />
@@ -176,16 +146,14 @@ export const SidebarLeft = forwardRef<SidebarLeftRef, SidebarLeftProps>(
 
                   <div className="flex-1 text-left">
                     <div
-                      className={`font-medium ${
-                        isActive ? "text-primary-foreground" : ""
-                      }`}
+                      className={`font-medium ${isActive ? "text-white" : ""}`}
                     >
                       {item.label}
                     </div>
                     <div
                       className={`text-xs ${
                         isActive
-                          ? "text-primary-foreground/70"
+                          ? "text-white/70"
                           : "text-muted-foreground group-hover:text-foreground/70"
                       } transition-colors duration-300`}
                     >

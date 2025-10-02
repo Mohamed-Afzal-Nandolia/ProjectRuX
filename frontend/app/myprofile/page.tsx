@@ -234,7 +234,7 @@ export default function MyProfilePage() {
           <CardContent className="flex items-center gap-4">
             <Avatar className="h-16 w-16">
               <AvatarImage src="/profile-user.svg" alt="User avatar" />
-              <AvatarFallback className="text-lg">
+              <AvatarFallback className="bg-primary text-white text-lg">
                 {user?.username?.slice(0, 2).toUpperCase() || "YO"}
               </AvatarFallback>
             </Avatar>
@@ -353,15 +353,17 @@ export default function MyProfilePage() {
                           {post.description}
                         </p>
 
-                        {/* techStack may be null, so guard it */}
-                        {Array.isArray(post.techStack) &&
-                          post.techStack.length > 0 && (
+                        {/* techstack may be null, so guard it */}
+                        {Array.isArray(post.techstack) &&
+                          post.techstack.length > 0 && (
                             <div className="mt-3 flex flex-wrap gap-2">
-                              {post.techStack.map((tech, index) => (
-                                <Badge key={index} variant="outline">
-                                  {tech}
-                                </Badge>
-                              ))}
+                              {post.techstack.map(
+                                (tech: string, index: number) => (
+                                  <Badge key={index} variant="outline">
+                                    {tech}
+                                  </Badge>
+                                )
+                              )}
                             </div>
                           )}
 
@@ -378,11 +380,7 @@ export default function MyProfilePage() {
                         <p className="mt-2 text-xs text-muted-foreground">
                           Last Updated -{" "}
                           {post.createdAt
-                            ? new Date(
-                                post.createdAt[0],
-                                post.createdAt[1] - 1,
-                                post.createdAt[2]
-                              ).toLocaleDateString()
+                            ? new Date(post.createdAt).toLocaleDateString()
                             : "Unknown date"}
                         </p>
                       </div>

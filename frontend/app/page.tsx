@@ -7,6 +7,7 @@ import { CreatePostDialog } from "@/components/ui/create-post-dialog";
 import { ModernHeader } from "@/components/ui/modern-header";
 import { MobileNavigation } from "@/components/ui/mobile-navigation";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 import { useState, useEffect, useRef } from "react";
 import { ApplicationsList } from "@/components/applications-list";
 import { MyPostsList } from "@/components/my-posts-list";
@@ -232,7 +233,7 @@ export default function HomePage() {
           {/* Section Header */}
           <div className="mb-6">
             <div className="flex items-center gap-3 mb-2">
-              <div className="p-2 rounded-lg bg-gradient-primary/10">
+              <div className="p-2 rounded-lg bg-primary/10">
                 {getSectionIcon(activeSection)}
               </div>
               <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">
@@ -302,15 +303,39 @@ export default function HomePage() {
           <div className="grid grid-cols-1 xl:grid-cols-12 gap-6">
             {/* Left Sidebar - Hidden on mobile, collapsed on tablet */}
             <div className="hidden lg:block xl:col-span-3">
+              {/* Create Project Button - Horizontally aligned with profile card */}
+              <div className="mb-6">
+                <Card className="glass-card border-glass-border hover-lift">
+                  <CreatePostDialog
+                    onPostCreated={() => {
+                      refreshFeed();
+                      refreshAllStats();
+                    }}
+                  >
+                    <CardContent className="cursor-pointer p-4 rounded-xl transition-all duration-300 overflow-hidden hover:bg-muted/30">
+                      <Button className="w-full justify-start gap-3 h-12 transition-all duration-300 group relative overflow-hidden bg-primary text-white hover:bg-primary/90 hover:text-white shadow-lg p-0 border border-blue-500/10">
+                        <div className="p-1.5 rounded-md bg-primary-foreground/20 transition-all duration-300 ml-2">
+                          <Plus className="h-4 w-4 text-white" />
+                        </div>
+                        <div className="flex-1 text-left min-w-0 pr-2">
+                          <div className="font-medium text-white truncate">
+                            Create Project
+                          </div>
+                          <div className="text-xs text-white/70 transition-colors duration-300 truncate">
+                            Start a new project
+                          </div>
+                        </div>
+                      </Button>
+                    </CardContent>
+                  </CreatePostDialog>
+                </Card>
+              </div>
+
               <div className="sticky top-24">
                 <SidebarLeft
                   ref={sidebarRef}
                   activeSection={activeSection}
                   setActiveSection={setActiveSection}
-                  onPostCreated={() => {
-                    refreshFeed();
-                    refreshAllStats();
-                  }}
                 />
               </div>
             </div>
@@ -325,7 +350,7 @@ export default function HomePage() {
                     refreshAllStats();
                   }}
                 >
-                  <Button className="w-full gradient-primary hover-lift text-white border-0 h-12 text-base font-medium">
+                  <Button className="w-full bg-primary hover:bg-primary/90 text-primary-foreground hover-lift border-0 h-12 text-base font-medium">
                     <Plus className="w-5 h-5 mr-2" />
                     Create New Project
                   </Button>

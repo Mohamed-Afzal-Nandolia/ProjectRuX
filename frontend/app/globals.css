@@ -88,42 +88,42 @@
 }
 
 .dark {
-  /* Modern Dual-Tone Theme - Dark Mode */
-  --background: oklch(6% 0.02 264); /* Darker background */
-  --foreground: oklch(95% 0.008 264); /* Light purple-white */
-  --card: oklch(10% 0.025 264); /* Darker cards */
-  --card-foreground: oklch(95% 0.008 264);
-  --popover: oklch(10% 0.025 264);
-  --popover-foreground: oklch(95% 0.008 264);
-  --primary: oklch(70% 0.16 264); /* Brighter purple in dark mode */
-  --primary-foreground: oklch(6% 0.02 264);
-  --secondary: oklch(80% 0.12 45); /* Brighter amber in dark mode */
-  --secondary-foreground: oklch(6% 0.02 45);
-  --muted: oklch(14% 0.02 264); /* Better contrast for muted */
-  --muted-foreground: oklch(65% 0.01 264);
-  --accent: oklch(18% 0.03 264); /* Better accent contrast */
-  --accent-foreground: oklch(95% 0.008 264);
-  --destructive: oklch(68% 0.18 25); /* Softer red in dark */
-  --border: oklch(18% 0.03 264); /* Better border contrast */
-  --input: oklch(14% 0.02 264);
-  --ring: oklch(70% 0.16 264);
-  --gradient-from: oklch(70% 0.16 264); /* Bright purple gradient */
-  --gradient-to: oklch(80% 0.12 45); /* Bright orange gradient */
-  --glass: oklch(10% 0.025 264 / 0.8); /* Darker glass effect */
-  --glass-border: oklch(25% 0.04 264 / 0.6); /* Better glass border visibility */
-  --chart-1: oklch(70% 0.16 264);
-  --chart-2: oklch(80% 0.12 45);
-  --chart-3: oklch(75% 0.1 180);
-  --chart-4: oklch(78% 0.11 120);
-  --chart-5: oklch(72% 0.14 300);
-  --sidebar: oklch(8% 0.02 264); /* Darker sidebar */
-  --sidebar-foreground: oklch(95% 0.008 264);
-  --sidebar-primary: oklch(70% 0.16 264);
-  --sidebar-primary-foreground: oklch(6% 0.02 264);
-  --sidebar-accent: oklch(18% 0.03 264);
-  --sidebar-accent-foreground: oklch(95% 0.008 264);
-  --sidebar-border: oklch(25% 0.04 264); /* Better sidebar border */
-  --sidebar-ring: oklch(70% 0.16 264);
+  /* Modern Sophisticated Dark Mode with Better Greys */
+  --background: oklch(13% 0.005 264); /* Sophisticated dark grey background */
+  --foreground: oklch(98% 0.002 264); /* Clean white text */
+  --card: oklch(18% 0.008 264); /* Elevated dark grey cards */
+  --card-foreground: oklch(95% 0.005 264);
+  --popover: oklch(16% 0.006 264); /* Slightly darker popover */
+  --popover-foreground: oklch(95% 0.005 264);
+  --primary: oklch(75% 0.15 264); /* Vibrant purple */
+  --primary-foreground: oklch(8% 0.01 264);
+  --secondary: oklch(82% 0.11 45); /* Bright amber accent */
+  --secondary-foreground: oklch(8% 0.01 45);
+  --muted: oklch(22% 0.01 264); /* Mid-tone grey for muted areas */
+  --muted-foreground: oklch(70% 0.005 264); /* Readable muted text */
+  --accent: oklch(25% 0.015 264); /* Subtle accent background */
+  --accent-foreground: oklch(95% 0.005 264);
+  --destructive: oklch(70% 0.16 25); /* Balanced red */
+  --border: oklch(28% 0.012 264); /* Visible but subtle borders */
+  --input: oklch(20% 0.008 264); /* Input field background */
+  --ring: oklch(75% 0.15 264); /* Focus ring */
+  --gradient-from: oklch(75% 0.15 264); /* Bright purple gradient */
+  --gradient-to: oklch(82% 0.11 45); /* Bright orange gradient */
+  --glass: oklch(18% 0.008 264 / 0.85); /* Enhanced glass effect */
+  --glass-border: oklch(35% 0.02 264 / 0.7); /* More visible glass borders */
+  --chart-1: oklch(75% 0.15 264);
+  --chart-2: oklch(82% 0.11 45);
+  --chart-3: oklch(78% 0.08 180);
+  --chart-4: oklch(80% 0.09 120);
+  --chart-5: oklch(76% 0.12 300);
+  --sidebar: oklch(15% 0.006 264); /* Sophisticated sidebar */
+  --sidebar-foreground: oklch(95% 0.005 264);
+  --sidebar-primary: oklch(75% 0.15 264);
+  --sidebar-primary-foreground: oklch(8% 0.01 264);
+  --sidebar-accent: oklch(25% 0.015 264);
+  --sidebar-accent-foreground: oklch(95% 0.005 264);
+  --sidebar-border: oklch(30% 0.015 264); /* Enhanced sidebar separation */
+  --sidebar-ring: oklch(75% 0.15 264);
 }
 
 @layer base {
@@ -138,44 +138,118 @@
     background-attachment: fixed;
   }
   
-  /* Better separation for dark mode */
+  /* Better separation for dark mode with enhanced gradients */
   .dark body {
     background-image: 
-      radial-gradient(circle at 20% 80%, oklch(55% 0.18 264 / 0.05) 0%, transparent 50%),
-      radial-gradient(circle at 80% 20%, oklch(75% 0.15 45 / 0.05) 0%, transparent 50%);
+      radial-gradient(circle at 20% 80%, oklch(75% 0.15 264 / 0.08) 0%, transparent 50%),
+      radial-gradient(circle at 80% 20%, oklch(82% 0.11 45 / 0.08) 0%, transparent 50%),
+      radial-gradient(circle at 50% 50%, oklch(15% 0.005 264) 0%, oklch(13% 0.005 264) 100%);
   }
 }
 
 @layer utilities {
-  /* Dark mode specific improvements */
+  /* Enhanced Dark mode specific improvements */
   .dark .glass {
-    @apply bg-card/90 backdrop-blur-xl border-border/40;
+    @apply bg-card/92 backdrop-blur-xl border-border/50 shadow-xl;
   }
   
   .dark .glass-card {
-    @apply bg-card/95 backdrop-blur-xl border-border/50 shadow-2xl;
+    @apply bg-card/96 backdrop-blur-xl border-border/60 shadow-2xl;
+    /* Add subtle inner glow for depth */
+    box-shadow: 
+      0 25px 50px -12px rgba(0, 0, 0, 0.5),
+      inset 0 1px 0 oklch(35% 0.02 264 / 0.3);
   }
   
-  /* Better header separation in dark mode */
+  /* Enhanced header with better separation */
   .dark header {
-    @apply border-b border-border/30;
+    @apply border-b border-border/40 bg-background/95 backdrop-blur-lg;
   }
   
-  /* Enhanced sidebar contrast in dark mode */
+  /* Sophisticated sidebar with improved contrast */
   .dark aside {
-    @apply bg-sidebar/95 backdrop-blur-lg border-r border-sidebar-border/40;
+    @apply bg-sidebar/97 backdrop-blur-lg border-r border-sidebar-border/50;
+    /* Add subtle gradient overlay */
+    background-image: linear-gradient(180deg, 
+      oklch(15% 0.006 264) 0%, 
+      oklch(14% 0.006 264) 100%);
   }
   
-  /* Gradient utilities */
+  /* Dark mode button enhancements */
+  .dark button {
+    @apply shadow-lg;
+  }
+  
+  .dark button:hover {
+    @apply shadow-xl;
+    transform: translateY(-1px);
+  }
+  
+  /* Enhanced input styling for dark mode */
+  .dark input {
+    @apply bg-input border-border/40 shadow-inner;
+  }
+  
+  .dark input:focus {
+    @apply border-ring/60 shadow-lg;
+    box-shadow: 0 0 0 3px oklch(75% 0.15 264 / 0.1), inset 0 2px 4px oklch(0% 0 0 / 0.1);
+  }
+  
+  /* Dark mode card improvements */
+  .dark .card {
+    @apply shadow-lg;
+    background: linear-gradient(145deg, 
+      oklch(18% 0.008 264), 
+      oklch(16% 0.006 264));
+  }
+  
+  /* Enhanced text contrast in dark mode */
+  .dark .text-muted-foreground {
+    color: oklch(75% 0.003 264);
+  }
+  
+  /* OTP Card specific dark mode improvements */
+  .dark .otp-card {
+    @apply bg-card/98 border-border/60;
+    background: linear-gradient(145deg, 
+      oklch(19% 0.008 264), 
+      oklch(17% 0.007 264));
+    box-shadow: 
+      0 20px 40px -12px rgba(0, 0, 0, 0.4),
+      inset 0 1px 0 oklch(30% 0.015 264 / 0.4);
+  }
+  
+  /* Better OTP input styling in dark mode */
+  .dark .otp-input {
+    @apply bg-input/80 border-border/50;
+    backdrop-filter: blur(8px);
+  }
+  
+  .dark .otp-input:focus {
+    @apply border-primary/60 bg-input/90;
+    box-shadow: 0 0 0 2px oklch(75% 0.15 264 / 0.2);
+  }
+  
+  /* Solid Color utilities for better dark mode support */
   .gradient-primary {
-    background: linear-gradient(135deg, oklch(55% 0.18 264), oklch(75% 0.15 45));
+    @apply bg-primary hover:bg-primary/90;
+    transition: background-color 0.2s ease;
   }
   
   .gradient-text {
-    background: linear-gradient(135deg, oklch(55% 0.18 264), oklch(75% 0.15 45));
-    -webkit-background-clip: text;
-    background-clip: text;
-    -webkit-text-fill-color: transparent;
+    @apply text-primary;
+  }
+  
+  /* Secondary button utility */
+  .btn-secondary {
+    @apply bg-secondary hover:bg-secondary/90 text-secondary-foreground;
+    transition: background-color 0.2s ease;
+  }
+  
+  /* Success button utility */
+  .btn-success {
+    @apply bg-green-600 hover:bg-green-700 text-white;
+    transition: background-color 0.2s ease;
   }
   
   /* Hover animations */
@@ -207,27 +281,14 @@
   
   /* Animated backgrounds */
   .animated-bg {
-    background: linear-gradient(-45deg, 
-      oklch(55% 0.18 264 / 0.1), 
-      oklch(75% 0.15 45 / 0.1), 
-      oklch(65% 0.12 180 / 0.1), 
-      oklch(70% 0.14 120 / 0.1)
-    );
-    background-size: 400% 400%;
-    animation: gradientShift 15s ease infinite;
-  }
-  
-  @keyframes gradientShift {
-    0% { background-position: 0% 50%; }
-    50% { background-position: 100% 50%; }
-    100% { background-position: 0% 50%; }
+    @apply bg-primary/5 hover:bg-primary/10;
+    transition: background-color 0.3s ease;
   }
   
   /* Modern border styles */
   .border-gradient {
-    border: 1px solid transparent;
-    background: linear-gradient(oklch(var(--card)), oklch(var(--card))) padding-box,
-                linear-gradient(135deg, oklch(55% 0.18 264), oklch(75% 0.15 45)) border-box;
+    @apply border border-primary/20 hover:border-primary/40;
+    transition: border-color 0.2s ease;
   }
   
   /* Scrollbar styling */

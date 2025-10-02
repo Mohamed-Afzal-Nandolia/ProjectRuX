@@ -99,7 +99,7 @@ export function MobileNavigation({
         <SearchDialog onSearch={onSearch} currentFilters={currentFilters}>
           <Button
             size="lg"
-            className="w-14 h-14 rounded-full gradient-primary text-white border-0 shadow-lg hover:shadow-xl transition-all duration-300"
+            className="w-14 h-14 rounded-full bg-primary hover:bg-primary/90 text-primary-foreground border-0 shadow-lg hover:shadow-xl transition-all duration-300"
           >
             <Search className="w-6 h-6" />
           </Button>
@@ -144,7 +144,7 @@ export function MobileNavigation({
                     onClick={() => handleNavigation(item.id)}
                     className={`w-full justify-start gap-3 h-12 rounded-lg ${
                       isActive
-                        ? "bg-primary text-primary-foreground"
+                        ? "bg-primary text-white hover:text-white"
                         : "hover:bg-muted/50"
                     }`}
                   >

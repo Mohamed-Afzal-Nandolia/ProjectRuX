@@ -75,6 +75,9 @@ public class UserServiceImpl implements UserService {
                 throw new ResourceAlreadyExists("Email: '" + userDto.getEmail() + "' Already Exists");
             }
             else{
+                Otp otpEntity = generateOtp(user.getId());
+                otpRepository.save(otpEntity);
+                mailService.sendMail(user.getEmail(), "New Verification OTP - ProjectRuX", otpEntity.getOtpCode());
                 return Map.of("error", "User Already exists");
             }
         }
@@ -96,10 +99,11 @@ public class UserServiceImpl implements UserService {
         user.setStatus(UserStatus.PENDING);
         User savedUser = userRepository.save(user);
 
-        Otp otpEntity = new Otp();
-        otpEntity.setUserId(savedUser.getId());
-        otpEntity.setOtpCode(generateOtp());
-        otpEntity.setExpiryTime(LocalDateTime.now().plusMinutes(5));
+        Otp otpEntity = generateOtp(savedUser.getId());
+//        Otp otpEntity = new Otp();
+//        otpEntity.setUserId(savedUser.getId());
+//        otpEntity.setOtpCode(generateOtp());
+//        otpEntity.setExpiryTime(LocalDateTime.now().plusMinutes(5));
         otpRepository.save(otpEntity);
 
         List<PlatformStats> all = platformStatsRepository.findAll();
@@ -116,11 +120,6 @@ public class UserServiceImpl implements UserService {
         return Map.of("success", "OTP has been sent to your Email");
     }
 
-    public static void createPlatformStatusRecord(){
-
-
-    }
-
     public Map<String, String> getUserByEmailId(UserDto userDto) {
         Optional<User> optionalUser = userRepository.findByEmail(userDto.getEmail());
         if(optionalUser.isPresent()){
@@ -130,9 +129,16 @@ public class UserServiceImpl implements UserService {
         return Map.of("error", "Email id '" + userDto.getEmail() + "' doesn't exists");
     }
 
-    private String generateOtp() {
+    private Otp generateOtp(String userId) {
+        Otp otpEntity = otpRepository.findByUserId(userId);
+        if(otpEntity == null){
+            otpEntity = new Otp();
+        }
+        otpEntity.setUserId(userId);
         int otp = (int)(Math.random() * 900000) + 100000; // 6-digit random
-        return String.valueOf(otp);
+        otpEntity.setOtpCode(String.valueOf(otp));
+        otpEntity.setExpiryTime(LocalDateTime.now().plusMinutes(5));
+        return otpEntity;
     }
 
     @Override
@@ -176,14 +182,14 @@ public class UserServiceImpl implements UserService {
             return Map.of("error", "Otp verification is already done");
         }
 
-        Otp otpEntity = otpRepository.findByUserId(userId);
-        if(otpEntity == null) {
-            otpEntity = new Otp();
-//            return Map.of("error", "No OTP found");
-        }
-        otpEntity.setUserId(userId);
-        otpEntity.setOtpCode(generateOtp());
-        otpEntity.setExpiryTime(LocalDateTime.now().plusMinutes(5));
+//        Otp otpEntity = otpRepository.findByUserId(userId);
+//        if(otpEntity == null) {
+//            otpEntity = new Otp();
+//        }
+//        otpEntity.setUserId(userId);
+//        otpEntity.setOtpCode(generateOtp());
+//        otpEntity.setExpiryTime(LocalDateTime.now().plusMinutes(5));
+        Otp otpEntity = generateOtp(userId);
         otpRepository.save(otpEntity);
 
         mailService.sendMail(user.getEmail(), "New Verification OTP - ProjectRuX", otpEntity.getOtpCode());

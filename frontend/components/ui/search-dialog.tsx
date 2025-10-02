@@ -147,7 +147,7 @@ export function SearchDialog({
             </Button>
             <Button
               onClick={handleSearch}
-              className="gradient-primary text-white"
+              className="bg-primary hover:bg-primary/90 text-primary-foreground"
               disabled={
                 selectedRoles.length === 0 && selectedSkills.length === 0
               }

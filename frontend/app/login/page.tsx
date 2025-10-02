@@ -66,8 +66,8 @@ export default function Login() {
         <div className="text-center mb-8">
           <div className="inline-flex items-center gap-3 mb-4">
             <div className="relative">
-              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-purple-500 to-orange-500 flex items-center justify-center shadow-lg">
-                <Sparkles className="w-7 h-7 text-white" />
+              <div className="w-12 h-12 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center shadow-lg">
+                <Sparkles className="w-7 h-7 text-primary" />
               </div>
               <div className="absolute -top-1 -right-1 w-4 h-4 bg-orange-400 rounded-full animate-pulse"></div>
             </div>
@@ -171,7 +171,7 @@ export default function Login() {
               {/* Submit Button */}
               <Button
                 type="submit"
-                className="w-full h-12 gradient-primary hover-lift text-white border-0 font-medium text-base"
+                className="w-full h-12 bg-primary hover:bg-primary/90 text-primary-foreground hover-lift border-0 font-medium text-base"
                 disabled={loading}
               >
                 {loading ? (

@@ -1,11 +1,11 @@
-import type * as React from "react"
+import type * as React from "react";
 
 export function Avatar({
   className = "",
   children,
 }: {
-  className?: string
-  children: React.ReactNode
+  className?: string;
+  children: React.ReactNode;
 }) {
   return (
     <div
@@ -13,7 +13,7 @@ export function Avatar({
     >
       {children}
     </div>
-  )
+  );
 }
 
 export function AvatarImage({
@@ -21,32 +21,32 @@ export function AvatarImage({
   alt = "",
   className = "",
 }: {
-  src?: string
-  alt?: string
-  className?: string
+  src?: string;
+  alt?: string;
+  className?: string;
 }) {
-  if (!src) return null
+  if (!src) return null;
   return (
     <img
       src={src || "/placeholder.svg"}
       alt={alt}
       className={`h-full w-full object-cover ${className}`}
     />
-  )
+  );
 }
 
 export function AvatarFallback({
   children,
   className = "",
 }: {
-  children: React.ReactNode
-  className?: string
+  children: React.ReactNode;
+  className?: string;
 }) {
   return (
     <span
-      className={`flex h-full w-full items-center justify-center text-sm font-medium text-muted-foreground ${className}`}
+      className={`flex h-full w-full items-center justify-center text-sm font-medium text-white bg-primary ${className}`}
     >
       {children}
     </span>
-  )
+  );
 }

@@ -9,7 +9,6 @@ import { Button } from "@/components/ui/button";
 import { getUsername } from "@/utils/jwt";
 import { getPlatformStats, getAllRoles } from "@/services/api";
 import {
-  TrendingUp,
   Users,
   Star,
   Calendar,
@@ -28,13 +27,6 @@ import {
   TestTube,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
-
-const trendingTags = [
-  { name: "open-source", count: "2.4k", trend: "+12%" },
-  { name: "nextjs", count: "1.8k", trend: "+8%" },
-  { name: "ai", count: "3.2k", trend: "+24%" },
-  { name: "design", count: "1.1k", trend: "+5%" },
-];
 
 // Helper function to map role names to icons and colors (following 2-3 color preference)
 const getRoleDisplayInfo = (roleName: string) => {
@@ -253,7 +245,7 @@ export const SidebarRight = forwardRef<SidebarRightRef, SidebarRightProps>(
 
     return (
       <aside className="w-80 max-w-80 space-y-6 overflow-hidden">
-        {/* Profile Card */}
+        {/* Profile Card - Now at the top */}
         <Card
           className="glass-card border-glass-border hover-lift"
           data-tour="right-sidebar"
@@ -282,43 +274,6 @@ export const SidebarRight = forwardRef<SidebarRightRef, SidebarRightProps>(
               </div>
             </CardContent>
           </Link>
-        </Card>
-
-        {/* Trending Topics */}
-        <Card className="glass-card border-glass-border">
-          <CardHeader className="pb-4">
-            <CardTitle className="text-lg font-semibold flex items-center gap-2">
-              <div className="w-6 h-6 rounded-full bg-gradient-to-br from-green-500 to-blue-500 flex items-center justify-center">
-                <TrendingUp className="w-3 h-3 text-white" />
-              </div>
-              Trending Now
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            {trendingTags.map((tag, index) => (
-              <div
-                key={tag.name}
-                className="flex items-center justify-between p-2 rounded-lg hover:bg-muted/30 transition-all duration-200 cursor-pointer group"
-              >
-                <div className="flex items-center gap-2">
-                  <span className="text-lg font-bold text-muted-foreground group-hover:text-foreground transition-colors">
-                    #{index + 1}
-                  </span>
-                  <div>
-                    <div className="font-medium text-sm group-hover:text-primary transition-colors">
-                      #{tag.name}
-                    </div>
-                    <div className="text-xs text-muted-foreground">
-                      {tag.count} projects
-                    </div>
-                  </div>
-                </div>
-                <div className="text-xs font-medium text-green-600 bg-green-500/10 px-2 py-1 rounded-full">
-                  {tag.trend}
-                </div>
-              </div>
-            ))}
-          </CardContent>
         </Card>
 
         {/* Suggested Roles */}
@@ -403,7 +358,7 @@ export const SidebarRight = forwardRef<SidebarRightRef, SidebarRightProps>(
               </div>
             </div>
 
-            <div className="p-3 rounded-lg bg-gradient-to-r from-purple-500/5 to-orange-500/5 border border-purple-500/10">
+            <div className="p-3 rounded-lg bg-primary/5 border border-primary/10">
               <div className="flex items-center justify-between mb-2">
                 <span className="text-sm font-medium">Weekly Activity</span>
                 <Calendar className="w-4 h-4 text-muted-foreground" />
@@ -412,7 +367,7 @@ export const SidebarRight = forwardRef<SidebarRightRef, SidebarRightProps>(
                 {[40, 65, 30, 80, 55, 75, 60].map((height, i) => (
                   <div
                     key={i}
-                    className="flex-1 bg-gradient-to-t from-purple-500 to-orange-500 rounded-sm opacity-70"
+                    className="flex-1 bg-primary rounded-sm opacity-70"
                     style={{ height: `${height}%`, minHeight: "4px" }}
                   />
                 ))}

@@ -190,9 +190,10 @@ export function OTPInput({
             aria-invalid={error ? true : undefined}
             maxLength={1}
             className={cn(
-              "h-12 w-10 rounded-md border bg-background text-center text-lg font-medium text-foreground outline-none",
+              "h-12 w-10 rounded-md border bg-background text-center text-lg font-medium text-foreground outline-none otp-input",
               "focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:ring-offset-background",
-              "border-input",
+              "border-input transition-all duration-200",
+              "hover:border-border/70 hover:bg-background/80",
               disabled && "cursor-not-allowed opacity-50",
               error && "border-destructive focus:ring-destructive"
             )}

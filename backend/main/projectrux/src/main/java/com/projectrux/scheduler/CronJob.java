@@ -41,12 +41,13 @@ public class CronJob {
         log.info("Deleted {} expired Tokens at {}", deletedCount, now);
     }
 
-//    @Scheduled(cron = "0 * * * * ?")
-    @Scheduled(cron = "0 */10 * * * ?")
+//    @Scheduled(cron = "0 */10 * * * ?")
+    @Scheduled(cron = "0 * * * * ?")
     public void pingCheckAlive() {
         String url = backendUrl + "auth/check-alive";
         try {
             String response = restTemplate.getForObject(url, String.class);
+            log.info("URL to pinged -> {}", url);
             log.info("Pinged /auth/check-alive -> Response: {}", response);
         } catch (Exception e) {
             log.error("Error while pinging /auth/check-alive: {}", e.getMessage(), e);

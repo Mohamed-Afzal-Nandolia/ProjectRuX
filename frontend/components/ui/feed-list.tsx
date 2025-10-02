@@ -214,7 +214,7 @@ export function FeedList({
           <p className="text-muted-foreground mb-4">{error}</p>
           <Button
             onClick={() => window.location.reload()}
-            className="gradient-primary hover-lift text-white border-0"
+            className="bg-primary hover:bg-primary/90 text-primary-foreground hover-lift border-0"
           >
             Try Again
           </Button>
@@ -266,7 +266,7 @@ export function FeedList({
                         src={post.author.avatarUrl || undefined}
                         alt={`${post.author.name} avatar`}
                       />
-                      <AvatarFallback className="bg-gradient-to-br from-purple-500 to-orange-500 text-white font-semibold text-xs sm:text-sm">
+                      <AvatarFallback className="bg-primary text-white font-semibold text-xs sm:text-sm">
                         {post.author.name.slice(0, 2).toUpperCase()}
                       </AvatarFallback>
                     </Avatar>
@@ -324,7 +324,7 @@ export function FeedList({
                           setActivePost(post);
                           toast.info(`Applying to ${post.title}... ✨`);
                         }}
-                        className="gradient-primary hover-lift text-white border-0 h-8 sm:h-9 px-3 sm:px-6 text-xs sm:text-sm font-medium"
+                        className="bg-primary hover:bg-primary/90 text-white hover-lift border-0 h-8 sm:h-9 px-3 sm:px-6 text-xs sm:text-sm font-medium"
                       >
                         <span className="hidden sm:inline">Apply Now</span>
                         <span className="sm:hidden">Apply</span>
